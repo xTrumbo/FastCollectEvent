@@ -72,5 +72,11 @@
           <artifactId>adventure-text-minimessage</artifactId>
           <version>4.19.0</version>
       </dependency>
+      <dependency>
+          <groupId>org.bstats</groupId>
+          <artifactId>bstats-bukkit</artifactId>
+          <version>3.0.2</version>
+          <scope>compile</scope>
+      </dependency>
   </dependencies>
 </project>
