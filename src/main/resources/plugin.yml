@@ -1,0 +1,6 @@
+name: FastCollectEvent
+version: '${project.version}'
+main: me.trumbo.fastcollectevent.FastCollectEvent
+api-version: '1.16'
+commands:
+  fce:

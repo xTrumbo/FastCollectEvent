@@ -1,0 +1,25 @@
+# Используйте hex, minimessage
+# hex - https://minecraft.menu/minecraft-rgb-generator
+# minimessage - https://webui.advntr.dev/
+message-format: "hex"
+
+messages:
+  delay-start: "&6FCE &8■ &aДо начала ивента: &6%minutes% мин. %seconds% сек."
+  delay-end: "&6FCE &8■ &aДо конца ивента: &6%minutes% мин. %seconds% сек."
+  no-event: "&6FCE &8■ &cСейчас нет активного ивента!"
+  no-items: "&6FCE &8■ &cУ вас нет &6%item%!"
+  collected: "&6FCE &8■ &aВы сдали &6%amount% &a%item%! Осталось: &6%remaining%"
+  reload: "&6FCE &8■ &aКонфигурация перезагружена!"
+  no-perm: "&6FCE &8■ &cУ вас нет прав!"
+  help:
+    - "&e=== &6FastCollectEvent Помощь &e==="
+    - "&a/%label% delay &7- Показать время до начала/конца ивента"
+    - "&a/%label% top &7- Показать топ игроков"
+    - "&a/%label% collect &7- Сдать предметы для ивента"
+    - "&e======================"
+
+top-settings:
+  lines: 10
+  top-header: "&aТоп игроков по ивенту:"
+  top-line: "&e%position%. &6%player% - &a%amount% %item%"
+  top-empty: "&e%position%. &7N/A"
