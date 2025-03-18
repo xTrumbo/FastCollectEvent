@@ -19,8 +19,6 @@ public final class MessageUtils {
         MINIMESSAGE
     }
 
-    private MessageUtils() {}
-
     public static Object format(String message, FormatType format) {
         if (message == null) return null;
 

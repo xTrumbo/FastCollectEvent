@@ -2,6 +2,7 @@ package me.trumbo.fastcollectevent.commands;
 
 import me.trumbo.fastcollectevent.FastCollectEvent;
 import me.trumbo.fastcollectevent.utils.MessageUtils;
+import me.trumbo.fastcollectevent.utils.SoundUtils;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -9,10 +10,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class MainCommand implements CommandExecutor {
 
@@ -28,16 +26,15 @@ public class MainCommand implements CommandExecutor {
         Player player = (Player) sender;
         MessageUtils.FormatType format = main.getConfigManager().getCurrentFormat();
 
-        if (args.length == 0) {
-            List<String> helpMessages = new ArrayList<>();
-            helpMessages.add("&e=== &6FastCollectEvent Помощь &e===");
-            helpMessages.add("&a/" + label + " delay &7- Показать время до начала/конца ивента");
-            helpMessages.add("&a/" + label + " top &7- Показать топ игроков");
-            helpMessages.add("&a/" + label + " collect &7- Сдать предметы для ивента");
-            helpMessages.add("&e======================");
-
+        if (args.length == 0 || (args[0].equalsIgnoreCase("help"))) {
+            List<String> helpMessages = main.getConfigManager().getFromConfig("config", "messages", "help",
+                    Arrays.asList("&e=== &6FastCollectEvent Помощь &e===",
+                            "&a/%label% delay &7- Показать время до начала/конца ивента",
+                            "&a/%label% top &7- Показать топ игроков",
+                            "&a/%label% collect &7- Сдать предметы для ивента",
+                            "&e======================"));
             for (String message : helpMessages) {
-                MessageUtils.sendMessageToPlayer(player, message, format);
+                MessageUtils.sendMessageToPlayer(player, message.replace("%label%", label), format);
             }
             return true;
         }
@@ -127,6 +124,9 @@ public class MainCommand implements CommandExecutor {
                     .sum();
 
             if (playerAmount == 0) {
+
+                SoundUtils.playSound(player,"no-items", main.getConfigManager());
+
                 String noItems = main.getConfigManager().getFromConfig("config", "messages", "no-items",
                         "&cУ вас нет &6%item%!");
                 String formattedMessage = noItems.replace("%item%", itemTranslation);
@@ -139,6 +139,7 @@ public class MainCommand implements CommandExecutor {
                 collectedAmount += stack.getAmount();
                 stack.setAmount(0);
             }
+
             player.getInventory().removeItem(new ItemStack(targetItem, 0));
 
             main.getEventManager().addPlayerProgress(player.getUniqueId(), collectedAmount);
@@ -148,12 +149,84 @@ public class MainCommand implements CommandExecutor {
             if (totalProgress >= targetAmount) {
                 main.getEventManager().endEvent(player);
             } else {
+
+                SoundUtils.playSound(player,"collect", main.getConfigManager());
+
                 String collected = main.getConfigManager().getFromConfig("config", "messages", "collected",
                         "&aВы сдали &6%amount% &a%item%! Осталось: &6%remaining%");
                 String formattedMessage = collected.replace("%amount%", String.valueOf(collectedAmount))
                         .replace("%item%", itemTranslation)
                         .replace("%remaining%", String.valueOf(remaining));
                 MessageUtils.sendMessageToPlayer(player, formattedMessage, format);
+            }
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("score") && sender.hasPermission("fce.admin")) {
+            if (args.length != 4) {
+                String usage = main.getConfigManager().getFromConfig("config", "messages", "score-usage",
+                        "&cИспользование: /%label% score <plus/minus> <игрок> <число>").replace("%label%", label);
+                MessageUtils.sendMessageToPlayer(player, usage, format);
+                return true;
+            }
+
+            if (!main.getEventManager().isEventActive()) {
+                String noEvent = main.getConfigManager().getFromConfig("config", "messages", "no-event",
+                        "&cСейчас нет активного ивента!");
+                MessageUtils.sendMessageToPlayer(player, noEvent, format);
+                return true;
+            }
+
+            String operation = args[1].toLowerCase();
+            String targetPlayerName = args[2];
+            int amount;
+
+            try {
+                amount = Integer.parseInt(args[3]);
+                if (amount < 0) throw new NumberFormatException();
+            } catch (NumberFormatException e) {
+                String invalidAmount = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-amount",
+                        "&cКоличество должно быть положительным числом!");
+                MessageUtils.sendMessageToPlayer(player, invalidAmount, format);
+                return true;
+            }
+
+            Player targetPlayer = main.getServer().getPlayerExact(targetPlayerName);
+            UUID targetUUID = (targetPlayer != null) ? targetPlayer.getUniqueId() :
+                    main.getServer().getOfflinePlayer(targetPlayerName).getUniqueId();
+
+            if (!operation.equals("plus") && !operation.equals("minus")) {
+                String invalidOp = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-operation",
+                        "&cДолжно быть 'plus' или 'minus'!");
+                MessageUtils.sendMessageToPlayer(player, invalidOp, format);
+                return true;
+            }
+
+            int currentProgress = main.getEventManager().getPlayerProgress(targetUUID);
+            int newProgress;
+
+            if (operation.equals("plus")) {
+                main.getEventManager().addPlayerProgress(targetUUID, amount);
+                newProgress = currentProgress + amount;
+                String scorePlus = main.getConfigManager().getFromConfig("config", "messages", "score-plus",
+                                "&aДобавлено &6%amount%&a очков игроку &6%player%&a. Новый счёт: &6%newscore%")
+                        .replace("%amount%", String.valueOf(amount))
+                        .replace("%player%", targetPlayerName)
+                        .replace("%newscore%", String.valueOf(newProgress));
+                MessageUtils.sendMessageToPlayer(player, scorePlus, format);
+            } else {
+                newProgress = Math.max(0, currentProgress - amount);
+                main.getEventManager().addPlayerProgress(targetUUID, newProgress - currentProgress);
+                String scoreMinus = main.getConfigManager().getFromConfig("config", "messages", "score-minus",
+                                "&cУбрано &6%amount%&c очков у игрока &6%player%&c. Новый счёт: &6%newscore%")
+                        .replace("%amount%", String.valueOf(amount))
+                        .replace("%player%", targetPlayerName)
+                        .replace("%newscore%", String.valueOf(newProgress));
+                MessageUtils.sendMessageToPlayer(player, scoreMinus, format);
+            }
+
+            if (newProgress >= main.getEventManager().getTargetAmount() && targetPlayer != null) {
+                main.getEventManager().endEvent(targetPlayer);
             }
             return true;
         }

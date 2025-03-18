@@ -1,7 +1,7 @@
 event:
   start-delay: 15 #Задержка перед стартом ивента в секундах
   duration: 35 #Длительность ивента в секундах
-  start-sound: "ENTITY_PLAYER_LEVELUP"
+  win-on-time-end: true #Настройка победит ли лучший игрок по окончанию длительности ивента
   start-message:
     - ""
     - "&6&LСОБЕРИ БЫСТРЕЕ ВСЕХ!"
@@ -23,4 +23,25 @@ event:
     - COBBLESTONE;100-500 #Рандомное кол-во сдачи предмета
     - DIRT;100-500
   rewards: #Награды
-    - "p give %winner% 1000"
+    - "give %winner% diamond 1-10"
+sounds:
+  collect: #При успешной сдачи предмета
+    name: "ENTITY_ITEM_PICKUP"
+    volume: 1.0
+    pitch: 1.0
+  no-items: #Если у игрока нету ивент предмета
+    name: "ENTITY_VILLAGER_NO"
+    volume: 1.0
+    pitch: 1.0
+  event-start: #Звук для всех игроков при начале ивента
+    name: "ENTITY_ENDER_DRAGON_GROWL"
+    volume: 1.0
+    pitch: 1.0
+  end-no-winner: #Звук для всех игроков когда в ивенте никто не участвовал (L)
+    name: "ENTITY_ENDER_DRAGON_GROWL"
+    volume: 1.0
+    pitch: 1.0
+  end-yes-winner: #Звук для всех игроков когда в ивенте есть победитель (W)
+    name: "ENTITY_PLAYER_LEVELUP"
+    volume: 1.0
+    pitch: 1.0

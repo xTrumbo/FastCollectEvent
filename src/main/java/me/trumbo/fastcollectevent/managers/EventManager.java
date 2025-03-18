@@ -2,6 +2,7 @@ package me.trumbo.fastcollectevent.managers;
 
 import me.trumbo.fastcollectevent.FastCollectEvent;
 import me.trumbo.fastcollectevent.utils.MessageUtils;
+import me.trumbo.fastcollectevent.utils.SoundUtils;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -27,10 +28,14 @@ public class EventManager {
     private long delayDuration;
     private long eventDuration;
 
+    private Random random;
+
     public EventManager(FastCollectEvent main) {
         this.isEventActive = false;
         this.main = main;
         this.playerProgress = new HashMap<>();
+
+        this.random = new Random();
 
         startDelayTimer();
     }
@@ -58,13 +63,7 @@ public class EventManager {
 
         isEventActive = true;
 
-        String soundName = configManager.getFromConfig("event", "event", "start-sound", null);
-        if (soundName != null) {
-                Sound sound = Sound.valueOf(soundName.toUpperCase());
-                for (Player player : main.getServer().getOnlinePlayers()) {
-                    player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
-                }
-        }
+        SoundUtils.playSoundToAll("event-start", main.getConfigManager());
 
         List<String> startMessages = configManager.getFromConfig("event", "event", "start-message",
                 Arrays.asList("&aИвент начался! Соберите " + targetAmount + " " + itemTranslation + "!"));
@@ -86,6 +85,7 @@ public class EventManager {
         ConfigManager configManager = main.getConfigManager();
         MessageUtils.FormatType format = configManager.getCurrentFormat();
         String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
+        boolean winOnTimeEnd = configManager.getFromConfig("event", "event", "win-on-time-end", true);
 
         String winnerName = null;
         int winnerProgress = 0;
@@ -93,7 +93,7 @@ public class EventManager {
         if (winner != null) {
             winnerName = winner.getName();
             winnerProgress = playerProgress.get(winner.getUniqueId());
-        } else if (!playerProgress.isEmpty()) {
+        } else if (winOnTimeEnd && !playerProgress.isEmpty()) {
             UUID winnerUUID = null;
             int maxProgress = -1;
             for (Map.Entry<UUID, Integer> entry : playerProgress.entrySet()) {
@@ -108,6 +108,9 @@ public class EventManager {
         }
 
         if (winnerName != null) {
+
+            SoundUtils.playSoundToAll("end-yes-winner", main.getConfigManager());
+
             List<String> endMessages = configManager.getFromConfig("event", "event", "event-end",
                     Arrays.asList("&cИвент завершён! Победитель: &6%winner% &7собрал &6%amount% &7из &6%int%"));
             for (String message : endMessages) {
@@ -121,10 +124,13 @@ public class EventManager {
             List<String> rewards = configManager.getFromConfig("event", "event", "rewards",
                     Arrays.asList("give %winner% diamond 64"));
             for (String reward : rewards) {
-                String command = reward.replace("%winner%", winnerName);
+                String command = processReward(reward, winnerName);
                 main.getServer().dispatchCommand(main.getServer().getConsoleSender(), command);
             }
         } else {
+
+            SoundUtils.playSoundToAll("end-no-winner", main.getConfigManager());
+
             List<String> noWinnerMessages = configManager.getFromConfig("event", "event", "event-end-no-winner",
                     Arrays.asList("&cИвент завершён! Никто не участвовал."));
             for (String message : noWinnerMessages) {
@@ -138,6 +144,26 @@ public class EventManager {
             eventTimer = null;
         }
         startDelayTimer();
+    }
+
+    private String processReward(String reward, String winnerName) {
+        String command = reward.replace("%winner%", winnerName);
+
+        String[] parts = command.split(" ");
+        for (int i = 0; i < parts.length; i++) {
+            if (parts[i].contains("-")) {
+                String[] range = parts[i].split("-");
+                if (range.length == 2) {
+                        int min = Integer.parseInt(range[0]);
+                        int max = Integer.parseInt(range[1]);
+                        if (min <= max) {
+                            int randomAmount = min + random.nextInt(max - min + 1);
+                            parts[i] = String.valueOf(randomAmount);
+                        }
+                    }
+                }
+            }
+        return String.join(" ", parts);
     }
 
     public long getDelayTimeLeft() {

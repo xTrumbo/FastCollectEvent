@@ -17,6 +17,11 @@ messages:
     - "&a/%label% top &7- Показать топ игроков"
     - "&a/%label% collect &7- Сдать предметы для ивента"
     - "&e======================"
+  score-usage: "&6FCE &8■ &cИспользование: /%label% score <plus/minus> <игрок> <число>"
+  score-invalid-amount: "&6FCE &8■ &cКоличество должно быть положительным числом!"
+  score-invalid-operation: "&6FCE &8■ &cОперация должна быть 'plus' или 'minus'!"
+  score-plus: "&6FCE &8■ &aДобавлено &6%amount%&a очков игроку &6%player%&a. Новый счёт: &6%newscore%"
+  score-minus: "&6FCE &8■ &cУбрано &6%amount%&c очков у игрока &6%player%&c. Новый счёт: &6%newscore%"
 
 top-settings:
   lines: 10
