@@ -32,6 +32,8 @@ public class MainCompleter implements TabCompleter {
             if (sender.hasPermission("fce.admin")) {
                 completions.add("reload");
                 completions.add("score");
+                completions.add("start");
+                completions.add("stop");
             }
 
             return completions.stream()

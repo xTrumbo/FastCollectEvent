@@ -11,6 +11,10 @@ messages:
   collected: "&6FCE &8■ &aВы сдали &6%amount% &a%item%! Осталось: &6%remaining%"
   reload: "&6FCE &8■ &aКонфигурация перезагружена!"
   no-perm: "&6FCE &8■ &cУ вас нет прав!"
+  already-active: "&6FCE &8■ &cИвент уже активен!"
+  not-active: "&6FCE &8■ &cИвент сейчас не активен!"
+  event-started: "&6FCE &8■ &aИвент успешно запущен!"
+  event-stopped: "&6FCE &8■ &aИвент успешно остановлен!"
   help:
     - "&e=== &6FastCollectEvent Помощь &e==="
     - "&a/%label% delay &7- Показать время до начала/конца ивента"

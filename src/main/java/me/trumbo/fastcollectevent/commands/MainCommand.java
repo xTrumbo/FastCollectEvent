@@ -231,6 +231,40 @@ public class MainCommand implements CommandExecutor {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("start") && sender.hasPermission("fce.admin")) {
+            if (main.getEventManager().isEventActive()) {
+                String alreadyActive = main.getConfigManager().getFromConfig("config", "messages", "already-active",
+                        "&cИвент уже активен!");
+                MessageUtils.sendMessageToPlayer(player, alreadyActive, format);
+                return true;
+            }
+
+            main.getEventManager().stopTimers();
+
+            main.getEventManager().startEventTimer();
+
+            String started = main.getConfigManager().getFromConfig("config", "messages", "event-started",
+                    "&aИвент успешно запущен!");
+            MessageUtils.sendMessageToPlayer(player, started, format);
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("stop") && sender.hasPermission("fce.admin")) {
+            if (!main.getEventManager().isEventActive()) {
+                String notActive = main.getConfigManager().getFromConfig("config", "messages", "not-active",
+                        "&cИвент сейчас не активен!");
+                MessageUtils.sendMessageToPlayer(player, notActive, format);
+                return true;
+            }
+
+            main.getEventManager().endEvent(null);
+
+            String stopped = main.getConfigManager().getFromConfig("config", "messages", "event-stopped",
+                    "&aИвент успешно остановлен!");
+            MessageUtils.sendMessageToPlayer(player, stopped, format);
+            return true;
+        }
+
         if (sender.hasPermission("fce.admin") && args[0].equalsIgnoreCase("reload")) {
             main.getConfigManager().createFiles();
             main.getEventManager().reloadEvent();

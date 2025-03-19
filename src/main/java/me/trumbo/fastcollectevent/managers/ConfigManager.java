@@ -8,10 +8,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class ConfigManager {
     private final FastCollectEvent main;
@@ -152,6 +149,27 @@ public class ConfigManager {
         }
 
         return new Object[]{material, amount};
+    }
+
+    public List<Map.Entry<Integer, List<String>>> getTopRewards() {
+        List<Map.Entry<Integer, List<String>>> rewards = new ArrayList<>();
+        ConfigurationSection section = event.getConfigurationSection("top-rewards");
+
+        if (section == null) {
+            rewards.add(new AbstractMap.SimpleEntry<>(1, Arrays.asList("give %winner% diamond 64")));
+            rewards.add(new AbstractMap.SimpleEntry<>(2, Arrays.asList("give %winner% emerald 32")));
+            rewards.add(new AbstractMap.SimpleEntry<>(3, Arrays.asList("give %winner% gold_ingot 16")));
+            return rewards;
+        }
+
+        for (String key : section.getKeys(false)) {
+            int position = Integer.parseInt(key);
+            Object rewardObj = getFromConfig("event", "top-rewards", key, Arrays.asList("give %player% stone 1"));
+            List<String> commands = rewardObj instanceof List ? (List<String>) rewardObj : Arrays.asList((String) rewardObj);
+            rewards.add(new AbstractMap.SimpleEntry<>(position, commands));
+        }
+
+        return rewards;
     }
 
     public String getItemTranslation(Material material) {

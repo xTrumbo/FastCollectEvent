@@ -1,5 +1,5 @@
 name: FastCollectEvent
-version: '${project.version}'
+version: '1.2'
 main: me.trumbo.fastcollectevent.FastCollectEvent
 api-version: '1.16'
 commands:

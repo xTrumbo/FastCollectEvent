@@ -4,7 +4,6 @@ import me.trumbo.fastcollectevent.FastCollectEvent;
 import me.trumbo.fastcollectevent.utils.MessageUtils;
 import me.trumbo.fastcollectevent.utils.SoundUtils;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -54,7 +53,7 @@ public class EventManager {
         delayStartTime = main.getServer().getCurrentTick();
     }
 
-    private void startEventTimer() {
+    public void startEventTimer() {
         ConfigManager configManager = main.getConfigManager();
         int eventDurationSeconds = configManager.getFromConfig("event", "event", "duration", 12);
         String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
@@ -84,8 +83,7 @@ public class EventManager {
         isEventActive = false;
         ConfigManager configManager = main.getConfigManager();
         MessageUtils.FormatType format = configManager.getCurrentFormat();
-        String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
-        boolean winOnTimeEnd = configManager.getFromConfig("event", "event", "win-on-time-end", true);
+        String itemTranslation = configManager.getItemTranslation(targetItem);
 
         String winnerName = null;
         int winnerProgress = 0;
@@ -93,7 +91,9 @@ public class EventManager {
         if (winner != null) {
             winnerName = winner.getName();
             winnerProgress = playerProgress.get(winner.getUniqueId());
-        } else if (winOnTimeEnd && !playerProgress.isEmpty()) {
+        }
+
+        else if (!playerProgress.isEmpty()) {
             UUID winnerUUID = null;
             int maxProgress = -1;
             for (Map.Entry<UUID, Integer> entry : playerProgress.entrySet()) {
@@ -108,11 +108,17 @@ public class EventManager {
         }
 
         if (winnerName != null) {
+            SoundUtils.playSoundToAll("end-yes-winner", configManager);
 
-            SoundUtils.playSoundToAll("end-yes-winner", main.getConfigManager());
+            List<String> endMessages;
+            if (winner != null) {
+                endMessages = configManager.getFromConfig("event", "event", "event-end",
+                        Arrays.asList("&cИвент завершён! Победитель: &6%winner% &7собрал &6%amount% &7из &6%int%"));
+            } else {
+                endMessages = configManager.getFromConfig("event", "event", "time-end",
+                        Arrays.asList("&cИвент завершён по времени! Победитель: &6%winner% &7собрал &6%amount%"));
+            }
 
-            List<String> endMessages = configManager.getFromConfig("event", "event", "event-end",
-                    Arrays.asList("&cИвент завершён! Победитель: &6%winner% &7собрал &6%amount% &7из &6%int%"));
             for (String message : endMessages) {
                 String formattedMessage = message.replace("%item%", itemTranslation)
                         .replace("%int%", String.valueOf(targetAmount))
@@ -121,18 +127,40 @@ public class EventManager {
                 MessageUtils.sendMessageToAll(formattedMessage, format);
             }
 
-            List<String> rewards = configManager.getFromConfig("event", "event", "rewards",
-                    Arrays.asList("give %winner% diamond 64"));
-            for (String reward : rewards) {
-                String command = processReward(reward, winnerName);
-                main.getServer().dispatchCommand(main.getServer().getConsoleSender(), command);
-            }
-        } else {
+            int topLines = configManager.getFromConfig("config", "top-settings", "lines", 10);
+            List<Map.Entry<UUID, Integer>> topPlayers = getTopPlayers(topLines);
+            List<Map.Entry<Integer, List<String>>> topRewards = configManager.getTopRewards();
 
-            SoundUtils.playSoundToAll("end-no-winner", main.getConfigManager());
+            for (int i = 0; i < topLines; i++) {
+                String playerName;
+                int amount;
+
+                if (i < topPlayers.size()) {
+                    Map.Entry<UUID, Integer> entry = topPlayers.get(i);
+                    playerName = main.getServer().getOfflinePlayer(entry.getKey()).getName();
+                    amount = entry.getValue();
+                } else {
+                    break;
+                }
+
+                int position = i + 1;
+                for (Map.Entry<Integer, List<String>> rewardEntry : topRewards) {
+                    if (rewardEntry.getKey() == position) {
+                        for (String reward : rewardEntry.getValue()) {
+                            String command = processReward(reward, playerName);
+                            main.getServer().dispatchCommand(main.getServer().getConsoleSender(), command);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        else {
+            SoundUtils.playSoundToAll("end-no-winner", configManager);
 
             List<String> noWinnerMessages = configManager.getFromConfig("event", "event", "event-end-no-winner",
                     Arrays.asList("&cИвент завершён! Никто не участвовал."));
+
             for (String message : noWinnerMessages) {
                 MessageUtils.sendMessageToAll(message, format);
             }
