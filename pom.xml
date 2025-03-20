@@ -12,7 +12,7 @@
   <name>FastCollectEvent</name>
 
   <properties>
-    <java.version>1.8</java.version>
+    <java.version>11</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -58,6 +58,10 @@
           <id>sonatype</id>
           <url>https://oss.sonatype.org/content/groups/public/</url>
       </repository>
+      <repository>
+          <id>placeholderapi</id>
+          <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+      </repository>
   </repositories>
 
   <dependencies>
@@ -77,6 +81,18 @@
           <artifactId>bstats-bukkit</artifactId>
           <version>3.0.2</version>
           <scope>compile</scope>
+      </dependency>
+      <dependency>
+          <groupId>com.zaxxer</groupId>
+          <artifactId>HikariCP</artifactId>
+          <version>5.0.1</version>
+          <scope>compile</scope>
+      </dependency>
+      <dependency>
+          <groupId>me.clip</groupId>
+          <artifactId>placeholderapi</artifactId>
+          <version>2.11.5</version>
+          <scope>provided</scope>
       </dependency>
   </dependencies>
 </project>

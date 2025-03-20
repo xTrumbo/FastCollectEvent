@@ -27,6 +27,14 @@ messages:
   score-plus: "&6FCE &8■ &aДобавлено &6%amount%&a очков игроку &6%player%&a. Новый счёт: &6%newscore%"
   score-minus: "&6FCE &8■ &cУбрано &6%amount%&c очков у игрока &6%player%&c. Новый счёт: &6%newscore%"
 
+database:
+  enabled: false
+  host: "127.0.0.1"
+  port: 3306
+  database: "fce"
+  username: "root"
+  password: "password"
+
 top-settings:
   lines: 10
   top-header: "&aТоп игроков по ивенту:"

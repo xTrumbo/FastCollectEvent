@@ -44,25 +44,33 @@ public class MainCommand implements CommandExecutor {
             long eventTicks = main.getEventManager().getEventTimeLeft();
 
             if (delayTicks > 0) {
-                int seconds = (int) (delayTicks / 20);
-                int minutes = seconds / 60;
-                seconds = seconds % 60;
+                int totalSeconds = (int) (delayTicks / 20);
+                int hours = totalSeconds / 3600;
+                int minutes = (totalSeconds % 3600) / 60;
+                int seconds = totalSeconds % 60;
 
                 String delayStart = main.getConfigManager().getFromConfig("config", "messages", "delay-start",
-                        "&aДо начала ивента: &6%minutes% мин. %seconds% сек.");
-                String formattedMessage = delayStart.replace("%minutes%", String.valueOf(minutes))
+                        "&aДо начала ивента: &6%hours% ч. %minutes% мин. %seconds% сек.");
+                String formattedMessage = delayStart.replace("%hours%", String.valueOf(hours))
+                        .replace("%minutes%", String.valueOf(minutes))
                         .replace("%seconds%", String.valueOf(seconds));
                 MessageUtils.sendMessageToPlayer(player, formattedMessage, format);
             } else if (eventTicks > 0) {
-                int seconds = (int) (eventTicks / 20);
-                int minutes = seconds / 60;
-                seconds = seconds % 60;
+                int totalSeconds = (int) (eventTicks / 20);
+                int hours = totalSeconds / 3600;
+                int minutes = (totalSeconds % 3600) / 60;
+                int seconds = totalSeconds % 60;
 
                 String delayEnd = main.getConfigManager().getFromConfig("config", "messages", "delay-end",
-                        "&aДо конца ивента: &6%minutes% мин. %seconds% сек.");
-                String formattedMessage = delayEnd.replace("%minutes%", String.valueOf(minutes))
+                        "&aДо конца ивента: &6%hours% ч. %minutes% мин. %seconds% сек.");
+                String formattedMessage = delayEnd.replace("%hours%", String.valueOf(hours))
+                        .replace("%minutes%", String.valueOf(minutes))
                         .replace("%seconds%", String.valueOf(seconds));
                 MessageUtils.sendMessageToPlayer(player, formattedMessage, format);
+            } else {
+                String noTimer = main.getConfigManager().getFromConfig("config", "messages", "no-timer",
+                        "&cСейчас нет активного таймера!");
+                MessageUtils.sendMessageToPlayer(player, noTimer, format);
             }
             return true;
         }
@@ -123,6 +131,11 @@ public class MainCommand implements CommandExecutor {
                     .mapToInt(ItemStack::getAmount)
                     .sum();
 
+            ItemStack offHandItem = player.getInventory().getItemInOffHand();
+            if (offHandItem != null && offHandItem.getType() == targetItem) {
+                playerAmount += offHandItem.getAmount();
+            }
+
             if (playerAmount == 0) {
 
                 SoundUtils.playSound(player,"no-items", main.getConfigManager());
@@ -140,6 +153,12 @@ public class MainCommand implements CommandExecutor {
                 stack.setAmount(0);
             }
 
+            if (offHandItem != null && offHandItem.getType() == targetItem) {
+                collectedAmount += offHandItem.getAmount();
+                player.getInventory().setItemInOffHand(null);
+            }
+
+            main.getDatabaseManager().addOrUpdatePlayer(player.getName(), collectedAmount);
             player.getInventory().removeItem(new ItemStack(targetItem, 0));
 
             main.getEventManager().addPlayerProgress(player.getUniqueId(), collectedAmount);
