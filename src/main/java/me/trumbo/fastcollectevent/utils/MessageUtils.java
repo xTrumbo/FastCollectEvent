@@ -6,44 +6,54 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class MessageUtils {
-
     private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
     private static final char COLOR_CHAR = ChatColor.COLOR_CHAR;
+    private static FormatType currentFormat = FormatType.HEX;
 
     public enum FormatType {
-        HEX,
-        MINIMESSAGE
-    }
+        HEX(MessageUtils::formatHex),
+        MINIMESSAGE(MessageUtils::formatMiniMessage);
 
-    public static Object format(String message, FormatType format) {
-        if (message == null) return null;
+        private final Function<String, Object> formatter;
 
-        switch (format) {
-            case HEX:
-                return formatHex(message);
-            case MINIMESSAGE:
-                return formatMiniMessage(message);
-            default:
-                return message;
+        FormatType(Function<String, Object> formatter) {
+            this.formatter = formatter;
+        }
+
+        public Object format(String message) {
+            return formatter.apply(message);
         }
     }
 
-    public static void sendMessageToAll(String message, FormatType format) {
-        if (message == null) return;
+    public static void setFormat(FormatType format) {
+        if (format != null) currentFormat = format;
+    }
 
-        Object formatted = format(message, format);
+    public static FormatType getCurrentFormat() {
+        return currentFormat;
+    }
+
+    public static Object format(String message) {
+        if (message == null) return null;
+        return currentFormat.format(message);
+    }
+
+    public static void sendMessageToAll(String message) {
+        if (message == null) return;
+        Object formatted = format(message);
         for (Player player : Bukkit.getOnlinePlayers()) {
             sendMessageToPlayer(player, formatted);
         }
     }
 
-    public static void sendMessageToPlayer(Player player, String message, FormatType format) {
+    public static void sendMessageToPlayer(Player player, String message) {
         if (player == null || message == null) return;
-        sendMessageToPlayer(player, format(message, format));
+        sendMessageToPlayer(player, format(message));
     }
 
     private static void sendMessageToPlayer(Player player, Object formattedMessage) {
@@ -59,24 +69,31 @@ public final class MessageUtils {
     }
 
     private static String formatHex(String message) {
-        String legacyFormatted = formatLegacy(message);
-        Matcher matcher = HEX_PATTERN.matcher(legacyFormatted);
-        StringBuffer result = new StringBuffer();
+        try {
+            String legacyFormatted = formatLegacy(message);
+            Matcher matcher = HEX_PATTERN.matcher(legacyFormatted);
+            StringBuffer result = new StringBuffer();
 
-        while (matcher.find()) {
-            String hex = matcher.group(1);
-            String replacement = COLOR_CHAR + "x"
-                    + COLOR_CHAR + hex.charAt(0) + COLOR_CHAR + hex.charAt(1)
-                    + COLOR_CHAR + hex.charAt(2) + COLOR_CHAR + hex.charAt(3)
-                    + COLOR_CHAR + hex.charAt(4) + COLOR_CHAR + hex.charAt(5);
-            matcher.appendReplacement(result, replacement);
+            while (matcher.find()) {
+                String hex = matcher.group(1);
+                String replacement = COLOR_CHAR + "x"
+                        + COLOR_CHAR + hex.charAt(0) + COLOR_CHAR + hex.charAt(1)
+                        + COLOR_CHAR + hex.charAt(2) + COLOR_CHAR + hex.charAt(3)
+                        + COLOR_CHAR + hex.charAt(4) + COLOR_CHAR + hex.charAt(5);
+                matcher.appendReplacement(result, replacement);
+            }
+            matcher.appendTail(result);
+            return result.toString();
+        } catch (Exception e) {
+            return formatLegacy(message);
         }
-        matcher.appendTail(result);
-
-        return result.toString();
     }
 
     private static Component formatMiniMessage(String message) {
-        return MiniMessage.miniMessage().deserialize(message);
+        try {
+            return MiniMessage.miniMessage().deserialize(message);
+        } catch (Exception e) {
+            return Component.text(formatLegacy(message));
+        }
     }
 }

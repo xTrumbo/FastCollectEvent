@@ -32,7 +32,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
 
     @Override
     public String getVersion() {
-        return "1.3";
+        return "1.4";
     }
 
     @Override
@@ -71,28 +71,21 @@ public class PlaceholderHook extends PlaceholderExpansion {
 
             if (delayTicks > 0) {
                 int totalSeconds = (int) (delayTicks / 20);
-                int hours = totalSeconds / 3600;
-                int minutes = (totalSeconds % 3600) / 60;
-                int seconds = totalSeconds % 60;
-
-                String delayStart = main.getConfigManager().getFromConfig("config", "messages", "delay-start",
-                        "&aДо начала ивента: &6%hours% ч. %minutes% мин. %seconds% сек.");
-                return delayStart.replace("%hours%", String.valueOf(hours))
-                        .replace("%minutes%", String.valueOf(minutes))
-                        .replace("%seconds%", String.valueOf(seconds));
+                return formatTime(totalSeconds);
             } else if (eventTicks > 0) {
                 int totalSeconds = (int) (eventTicks / 20);
-                int hours = totalSeconds / 3600;
-                int minutes = (totalSeconds % 3600) / 60;
-                int seconds = totalSeconds % 60;
-
-                String delayEnd = main.getConfigManager().getFromConfig("config", "messages", "delay-end",
-                        "&aДо конца ивента: &6%hours% ч. %minutes% мин. %seconds% сек.");
-                return delayEnd.replace("%hours%", String.valueOf(hours))
-                        .replace("%minutes%", String.valueOf(minutes))
-                        .replace("%seconds%", String.valueOf(seconds));
+                return formatTime(totalSeconds);
+            } else {
+                return "0";
             }
         }
         return null;
+    }
+
+    private String formatTime(int totalSeconds) {
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+        return String.format("%d ч %02d мин. %02d сек.", hours, minutes, seconds);
     }
 }

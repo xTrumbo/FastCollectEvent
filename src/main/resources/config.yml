@@ -4,8 +4,8 @@
 message-format: "hex"
 
 messages:
-  delay-start: "&6FCE &8■ &aДо начала ивента: &6%minutes% мин. %seconds% сек."
-  delay-end: "&6FCE &8■ &aДо конца ивента: &6%minutes% мин. %seconds% сек."
+  delay-start: "&6FCE &8■ &aДо начала ивента: &6%hours% ч. %minutes% мин. %seconds% сек. &aПредмет: &6%item%"
+  delay-end: "&6FCE &8■ &aДо конца ивента: &6%hours% ч. %minutes% мин. %seconds% сек. &aПредмет: &6%item%"
   no-event: "&6FCE &8■ &cСейчас нет активного ивента!"
   no-items: "&6FCE &8■ &cУ вас нет &6%item%!"
   collected: "&6FCE &8■ &aВы сдали &6%amount% &a%item%! Осталось: &6%remaining%"
@@ -28,7 +28,7 @@ messages:
   score-minus: "&6FCE &8■ &cУбрано &6%amount%&c очков у игрока &6%player%&c. Новый счёт: &6%newscore%"
 
 database:
-  enabled: false
+  enabled: false #Вкл/выкл подключения бд
   host: "127.0.0.1"
   port: 3306
   database: "fce"
@@ -36,7 +36,7 @@ database:
   password: "password"
 
 top-settings:
-  lines: 10
+  lines: 10 #Кол-во игроков в топе, действуют со всеми другими системами плагина.
   top-header: "&aТоп игроков по ивенту:"
   top-line: "&e%position%. &6%player% - &a%amount% %item%"
   top-empty: "&e%position%. &7N/A"

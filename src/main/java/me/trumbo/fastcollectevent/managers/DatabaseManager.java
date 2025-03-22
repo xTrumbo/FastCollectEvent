@@ -32,11 +32,11 @@ public class DatabaseManager {
         String jdbcUrl = String.format("jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=UTC",
                 main.getConfigManager().getFromConfig("config", "database", "host", "localhost"),
                 main.getConfigManager().getFromConfig("config", "database", "port", 3306),
-                main.getConfigManager().getFromConfig("config", "database", "database", "minecraft"));
+                main.getConfigManager().getFromConfig("config", "database", "database", "fce"));
 
         hikariConfig.setJdbcUrl(jdbcUrl);
         hikariConfig.setUsername(main.getConfigManager().getFromConfig("config", "database", "username", "root"));
-        hikariConfig.setPassword(main.getConfigManager().getFromConfig("config", "database", "password", "your_password"));
+        hikariConfig.setPassword(main.getConfigManager().getFromConfig("config", "database", "password", "pass"));
         hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
         hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
@@ -111,7 +111,6 @@ public class DatabaseManager {
     public boolean isEnabled() {
         return enabled;
     }
-
 
     public void close() {
         if (dataSource != null) {

@@ -18,7 +18,6 @@ public class ConfigManager {
     private FileConfiguration config;
     private FileConfiguration event;
     private FileConfiguration itemTranslations;
-    private MessageUtils.FormatType currentFormat;
     private Random random;
 
     public ConfigManager(FastCollectEvent main) {
@@ -28,7 +27,6 @@ public class ConfigManager {
     }
 
     public void createFiles() {
-
         if (!main.getDataFolder().exists()) {
             main.getDataFolder().mkdir();
         }
@@ -40,11 +38,9 @@ public class ConfigManager {
         if (!configFile.exists()) {
             main.saveResource("config.yml", false);
         }
-
         if (!eventFile.exists()) {
             main.saveResource("event.yml", false);
         }
-
         if (!itemTranslationsFile.exists()) {
             main.saveResource("item_translations.yml", false);
         }
@@ -141,11 +137,11 @@ public class ConfigManager {
         String[] range = parts[1].split("-");
         int amount = 64;
         if (range.length == 2) {
-                int min = Integer.parseInt(range[0]);
-                int max = Integer.parseInt(range[1]);
-                if (min <= max) {
-                    amount = min + random.nextInt(max - min + 1);
-                }
+            int min = Integer.parseInt(range[0]);
+            int max = Integer.parseInt(range[1]);
+            if (min <= max) {
+                amount = min + random.nextInt(max - min + 1);
+            }
         }
 
         return new Object[]{material, amount};
@@ -174,16 +170,15 @@ public class ConfigManager {
 
     public String getItemTranslation(Material material) {
         String materialName = material.name();
-        String translation = getFromConfig("item_translations", "items", materialName, null);
-        return translation;
+        return getFromConfig("item_translations", "items", materialName, null);
     }
 
     private void loadFormat() {
         String formatString = config.getString("message-format", "HEX").toUpperCase();
-        currentFormat = MessageUtils.FormatType.valueOf(formatString);
-    }
-
-    public MessageUtils.FormatType getCurrentFormat() {
-        return currentFormat;
+        try {
+            MessageUtils.setFormat(MessageUtils.FormatType.valueOf(formatString));
+        } catch (IllegalArgumentException e) {
+            MessageUtils.setFormat(MessageUtils.FormatType.HEX);
+        }
     }
 }

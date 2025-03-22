@@ -66,11 +66,10 @@ public class EventManager {
 
         List<String> startMessages = configManager.getFromConfig("event", "event", "start-message",
                 Arrays.asList("&aИвент начался! Соберите " + targetAmount + " " + itemTranslation + "!"));
-        MessageUtils.FormatType format = configManager.getCurrentFormat();
         for (String message : startMessages) {
             String formattedMessage = message.replace("%item%", itemTranslation)
                     .replace("%int%", String.valueOf(targetAmount));
-            MessageUtils.sendMessageToAll(formattedMessage, format);
+            MessageUtils.sendMessageToAll(formattedMessage);
         }
 
         eventTimer = main.getServer().getScheduler().runTaskLater(main, () -> {
@@ -82,7 +81,6 @@ public class EventManager {
     public void endEvent(Player winner) {
         isEventActive = false;
         ConfigManager configManager = main.getConfigManager();
-        MessageUtils.FormatType format = configManager.getCurrentFormat();
         String itemTranslation = configManager.getItemTranslation(targetItem);
 
         String winnerName = null;
@@ -124,7 +122,7 @@ public class EventManager {
                         .replace("%int%", String.valueOf(targetAmount))
                         .replace("%winner%", winnerName)
                         .replace("%amount%", String.valueOf(winnerProgress));
-                MessageUtils.sendMessageToAll(formattedMessage, format);
+                MessageUtils.sendMessageToAll(formattedMessage);
             }
 
             int topLines = configManager.getFromConfig("config", "top-settings", "lines", 10);
@@ -162,7 +160,7 @@ public class EventManager {
                     Arrays.asList("&cИвент завершён! Никто не участвовал."));
 
             for (String message : noWinnerMessages) {
-                MessageUtils.sendMessageToAll(message, format);
+                MessageUtils.sendMessageToAll(message);
             }
         }
 
@@ -182,15 +180,15 @@ public class EventManager {
             if (parts[i].contains("-")) {
                 String[] range = parts[i].split("-");
                 if (range.length == 2) {
-                        int min = Integer.parseInt(range[0]);
-                        int max = Integer.parseInt(range[1]);
-                        if (min <= max) {
-                            int randomAmount = min + random.nextInt(max - min + 1);
-                            parts[i] = String.valueOf(randomAmount);
-                        }
+                    int min = Integer.parseInt(range[0]);
+                    int max = Integer.parseInt(range[1]);
+                    if (min <= max) {
+                        int randomAmount = min + random.nextInt(max - min + 1);
+                        parts[i] = String.valueOf(randomAmount);
                     }
                 }
             }
+        }
         return String.join(" ", parts);
     }
 
