@@ -34,10 +34,6 @@ public final class MessageUtils {
         if (format != null) currentFormat = format;
     }
 
-    public static FormatType getCurrentFormat() {
-        return currentFormat;
-    }
-
     public static Object format(String message) {
         if (message == null) return null;
         return currentFormat.format(message);

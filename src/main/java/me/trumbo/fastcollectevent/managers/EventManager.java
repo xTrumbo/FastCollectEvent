@@ -3,8 +3,14 @@ package me.trumbo.fastcollectevent.managers;
 import me.trumbo.fastcollectevent.FastCollectEvent;
 import me.trumbo.fastcollectevent.utils.MessageUtils;
 import me.trumbo.fastcollectevent.utils.SoundUtils;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
@@ -85,9 +91,11 @@ public class EventManager {
 
         String winnerName = null;
         int winnerProgress = 0;
+        Player winnerPlayer = null;
 
         if (winner != null) {
             winnerName = winner.getName();
+            winnerPlayer = winner;
             winnerProgress = playerProgress.get(winner.getUniqueId());
         }
 
@@ -103,6 +111,7 @@ public class EventManager {
             winnerProgress = maxProgress;
             winnerName = main.getServer().getOfflinePlayer(winnerUUID).getName();
             if (winnerName == null) winnerName = "Неизвестный игрок";
+            winnerPlayer = main.getServer().getPlayer(winnerUUID);
         }
 
         if (winnerName != null) {
@@ -123,6 +132,11 @@ public class EventManager {
                         .replace("%winner%", winnerName)
                         .replace("%amount%", String.valueOf(winnerProgress));
                 MessageUtils.sendMessageToAll(formattedMessage);
+            }
+
+            boolean fireworkEnabled = configManager.getFromConfig("event", "event", "firework-on-winner", true);
+            if (fireworkEnabled && winnerPlayer != null && winnerPlayer.isOnline()) {
+                spawnRandomFirework(winnerPlayer.getLocation());
             }
 
             int topLines = configManager.getFromConfig("config", "top-settings", "lines", 10);
@@ -170,6 +184,29 @@ public class EventManager {
             eventTimer = null;
         }
         startDelayTimer();
+    }
+
+    private void spawnRandomFirework(Location location) {
+        Firework firework = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
+        FireworkMeta meta = firework.getFireworkMeta();
+
+        FireworkEffect.Type[] types = FireworkEffect.Type.values();
+        FireworkEffect.Type randomType = types[random.nextInt(types.length)];
+
+        Color color1 = Color.fromRGB(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+        Color color2 = Color.fromRGB(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+
+        FireworkEffect effect = FireworkEffect.builder()
+                .with(randomType)
+                .withColor(color1)
+                .withFade(color2)
+                .flicker(random.nextBoolean())
+                .trail(random.nextBoolean())
+                .build();
+
+        meta.addEffect(effect);
+        meta.setPower(random.nextInt(2) + 1);
+        firework.setFireworkMeta(meta);
     }
 
     private String processReward(String reward, String winnerName) {

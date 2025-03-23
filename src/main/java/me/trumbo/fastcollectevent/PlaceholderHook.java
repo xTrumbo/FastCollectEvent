@@ -1,6 +1,7 @@
 package me.trumbo.fastcollectevent;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
 
     @Override
     public String getVersion() {
-        return "1.4";
+        return "1.5";
     }
 
     @Override
@@ -63,8 +64,6 @@ public class PlaceholderHook extends PlaceholderExpansion {
             } catch (NumberFormatException ignored) {
                 return "";
             }
-
-
         } else if (identifier.equals("time")) {
             long delayTicks = main.getEventManager().getDelayTimeLeft();
             long eventTicks = main.getEventManager().getEventTimeLeft();
@@ -76,8 +75,20 @@ public class PlaceholderHook extends PlaceholderExpansion {
                 int totalSeconds = (int) (eventTicks / 20);
                 return formatTime(totalSeconds);
             } else {
-                return "0";
+                return "0 ч 00 мин. 00 сек.";
             }
+        } else if (identifier.equals("item_id")) {
+            Material targetItem = main.getEventManager().getTargetItem();
+            return targetItem != null ? targetItem.name() : "N/A";
+        } else if (identifier.equals("item_name")) {
+            Material targetItem = main.getEventManager().getTargetItem();
+            if (targetItem != null) {
+                String translation = main.getConfigManager().getItemTranslation(targetItem);
+                return translation != null ? translation : targetItem.name();
+            }
+            return "N/A";
+        } else if (identifier.equals("event_status")) {
+            return main.getEventManager().isEventActive() ? "Активен" : "Неактивен";
         }
         return null;
     }

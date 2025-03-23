@@ -1,6 +1,7 @@
 event:
   start-delay: 15 #Задержка перед стартом ивента в секундах
   duration: 35 #Длительность ивента в секундах
+  firework-on-winner: true
   start-message:
     - ""
     - "&6&LСОБЕРИ БЫСТРЕЕ ВСЕХ!"
