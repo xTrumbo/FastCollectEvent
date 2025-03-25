@@ -52,7 +52,7 @@ public class ConfigManager {
         loadFormat();
     }
 
-    public <T> T getFromConfig(String configName, String sectionPath, String key, T defaultValue) {
+    public <T> T getFromConfig(String configName, String sectionPath, String key) {
         FileConfiguration targetConfig;
         switch (configName.toLowerCase()) {
             case "config":
@@ -65,14 +65,14 @@ public class ConfigManager {
                 targetConfig = itemTranslations;
                 break;
             default:
-                return defaultValue;
+                return null;
         }
 
         Object value;
         if (sectionPath != null && !sectionPath.isEmpty()) {
             ConfigurationSection section = targetConfig.getConfigurationSection(sectionPath);
             if (section == null) {
-                return defaultValue;
+                return null;
             }
             value = section.get(key);
         } else {
@@ -80,45 +80,30 @@ public class ConfigManager {
         }
 
         if (value == null) {
-            return defaultValue;
+            return null;
         }
 
-        if (defaultValue instanceof List<?>) {
-            return (T) value;
-        }
-
-        Class<?> targetType = defaultValue != null ? defaultValue.getClass() : Object.class;
-        try {
-            if (targetType == String.class) {
-                return (T) value.toString();
-            } else if (targetType == Integer.class) {
-                if (value instanceof Number) {
-                    return (T) Integer.valueOf(((Number) value).intValue());
-                }
-                return (T) Integer.valueOf(value.toString());
-            } else if (targetType == Double.class) {
-                if (value instanceof Number) {
-                    return (T) Double.valueOf(((Number) value).doubleValue());
-                }
-                return (T) Double.valueOf(value.toString());
-            } else if (targetType == Boolean.class) {
-                if (value instanceof Boolean) {
-                    return (T) value;
-                }
-                return (T) Boolean.valueOf(value.toString());
+        if (value instanceof Number) {
+            Number number = (Number) value;
+            if (number instanceof Integer) {
+                return (T) number;
+            } else if (number instanceof Double || number instanceof Float) {
+                return (T) Float.valueOf(number.floatValue());
             } else {
-                return (T) targetType.cast(value);
+                return (T) number;
             }
-        } catch (NumberFormatException | ClassCastException e) {
-            return defaultValue;
+        } else if (value instanceof String) {
+            return (T) value;
+        } else if (value instanceof Boolean) {
+            return (T) value;
+        } else {
+            return (T) value;
         }
     }
 
     public Object[] getRandomEventItem() {
-        List<String> items = getFromConfig("event", "event", "items",
-                new ArrayList<>(Arrays.asList("COBBLESTONE;100-500", "DIRT;100-500")));
-
-        if (items.isEmpty() || random == null) {
+        List<String> items = getFromConfig("event", "event", "items");
+        if (items == null || items.isEmpty() || random == null) {
             return new Object[]{Material.DIAMOND, 64};
         }
 
@@ -160,7 +145,7 @@ public class ConfigManager {
 
         for (String key : section.getKeys(false)) {
             int position = Integer.parseInt(key);
-            Object rewardObj = getFromConfig("event", "top-rewards", key, Arrays.asList("give %player% stone 1"));
+            Object rewardObj = getFromConfig("event", "top-rewards", key);
             List<String> commands = rewardObj instanceof List ? (List<String>) rewardObj : Arrays.asList((String) rewardObj);
             rewards.add(new AbstractMap.SimpleEntry<>(position, commands));
         }
@@ -168,15 +153,35 @@ public class ConfigManager {
         return rewards;
     }
 
+    public List<Material> getEventItems() {
+        List<String> items = getFromConfig("event", "event", "items");
+
+        List<Material> materials = new ArrayList<>();
+        for (String item : items) {
+            String[] parts = item.split(";");
+            if (parts.length > 0) {
+                Material material = Material.matchMaterial(parts[0]);
+                if (material != null && material.isItem()) {
+                    materials.add(material);
+                }
+            }
+        }
+        return materials;
+    }
+
     public String getItemTranslation(Material material) {
         String materialName = material.name();
-        return getFromConfig("item_translations", "items", materialName, null);
+        return getFromConfig("item_translations", "items", materialName);
     }
 
     private void loadFormat() {
-        String formatString = config.getString("message-format", "HEX").toUpperCase();
+        String formatString = config.getString("message-format");
+        if (formatString == null) {
+            MessageUtils.setFormat(MessageUtils.FormatType.HEX);
+            return;
+        }
         try {
-            MessageUtils.setFormat(MessageUtils.FormatType.valueOf(formatString));
+            MessageUtils.setFormat(MessageUtils.FormatType.valueOf(formatString.toUpperCase()));
         } catch (IllegalArgumentException e) {
             MessageUtils.setFormat(MessageUtils.FormatType.HEX);
         }

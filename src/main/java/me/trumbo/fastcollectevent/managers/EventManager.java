@@ -35,12 +35,15 @@ public class EventManager {
 
     private Random random;
 
+    private String lastWinner;
+
     public EventManager(FastCollectEvent main) {
         this.isEventActive = false;
         this.main = main;
         this.playerProgress = new HashMap<>();
 
         this.random = new Random();
+        this.lastWinner = null;
 
         startDelayTimer();
     }
@@ -50,7 +53,7 @@ public class EventManager {
         this.targetItem = (Material) itemData[0];
         this.targetAmount = (int) itemData[1];
 
-        int delaySeconds = main.getConfigManager().getFromConfig("event", "event", "start-delay", 8);
+        int delaySeconds = main.getConfigManager().getFromConfig("event", "event", "start-delay");
         delayDuration = delaySeconds * 20L;
 
         delayTimer = main.getServer().getScheduler().runTaskLater(main, () -> {
@@ -61,7 +64,7 @@ public class EventManager {
 
     public void startEventTimer() {
         ConfigManager configManager = main.getConfigManager();
-        int eventDurationSeconds = configManager.getFromConfig("event", "event", "duration", 12);
+        int eventDurationSeconds = configManager.getFromConfig("event", "event", "duration");
         String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
 
         eventDuration = eventDurationSeconds * 20L;
@@ -70,8 +73,7 @@ public class EventManager {
 
         SoundUtils.playSoundToAll("event-start", main.getConfigManager());
 
-        List<String> startMessages = configManager.getFromConfig("event", "event", "start-message",
-                Arrays.asList("&aИвент начался! Соберите " + targetAmount + " " + itemTranslation + "!"));
+        List<String> startMessages = configManager.getFromConfig("event", "event", "start-message");
         for (String message : startMessages) {
             String formattedMessage = message.replace("%item%", itemTranslation)
                     .replace("%int%", String.valueOf(targetAmount));
@@ -95,6 +97,7 @@ public class EventManager {
 
         if (winner != null) {
             winnerName = winner.getName();
+            lastWinner = winnerName;
             winnerPlayer = winner;
             winnerProgress = playerProgress.get(winner.getUniqueId());
         }
@@ -119,11 +122,9 @@ public class EventManager {
 
             List<String> endMessages;
             if (winner != null) {
-                endMessages = configManager.getFromConfig("event", "event", "event-end",
-                        Arrays.asList("&cИвент завершён! Победитель: &6%winner% &7собрал &6%amount% &7из &6%int%"));
+                endMessages = configManager.getFromConfig("event", "event", "event-end");
             } else {
-                endMessages = configManager.getFromConfig("event", "event", "time-end",
-                        Arrays.asList("&cИвент завершён по времени! Победитель: &6%winner% &7собрал &6%amount%"));
+                endMessages = configManager.getFromConfig("event", "event", "time-end");
             }
 
             for (String message : endMessages) {
@@ -134,12 +135,12 @@ public class EventManager {
                 MessageUtils.sendMessageToAll(formattedMessage);
             }
 
-            boolean fireworkEnabled = configManager.getFromConfig("event", "event", "firework-on-winner", true);
+            boolean fireworkEnabled = configManager.getFromConfig("event", "event", "firework-on-winner");
             if (fireworkEnabled && winnerPlayer != null && winnerPlayer.isOnline()) {
                 spawnRandomFirework(winnerPlayer.getLocation());
             }
 
-            int topLines = configManager.getFromConfig("config", "top-settings", "lines", 10);
+            int topLines = configManager.getFromConfig("config", "top-settings", "lines");
             List<Map.Entry<UUID, Integer>> topPlayers = getTopPlayers(topLines);
             List<Map.Entry<Integer, List<String>>> topRewards = configManager.getTopRewards();
 
@@ -170,8 +171,7 @@ public class EventManager {
         else {
             SoundUtils.playSoundToAll("end-no-winner", configManager);
 
-            List<String> noWinnerMessages = configManager.getFromConfig("event", "event", "event-end-no-winner",
-                    Arrays.asList("&cИвент завершён! Никто не участвовал."));
+            List<String> noWinnerMessages = configManager.getFromConfig("event", "event", "event-end-no-winner");
 
             for (String message : noWinnerMessages) {
                 MessageUtils.sendMessageToAll(message);
@@ -289,6 +289,18 @@ public class EventManager {
 
     public boolean isEventActive() {
         return isEventActive;
+    }
+
+    public String getLastWinner() {
+        return lastWinner;
+    }
+
+    public void setTargetItem(Material targetItem) {
+        this.targetItem = targetItem;
+    }
+
+    public void setTargetAmount(int targetAmount) {
+        this.targetAmount = targetAmount;
     }
 
 }

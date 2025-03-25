@@ -1,6 +1,7 @@
 package me.trumbo.fastcollectevent.commands;
 
 import me.trumbo.fastcollectevent.FastCollectEvent;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -26,6 +27,15 @@ public class MainCompleter implements TabCompleter {
             completions.addAll(Arrays.asList("delay", "top", "collect", "help"));
             if (sender.hasPermission("fce.admin")) {
                 completions.addAll(Arrays.asList("reload", "score", "start", "stop"));
+            }
+        } else if (args[0].equalsIgnoreCase("start") && sender.hasPermission("fce.admin")) {
+            if (args.length == 2) {
+                List<Material> eventItems = main.getConfigManager().getEventItems();
+                for (Material material : eventItems) {
+                    completions.add(material.name().toLowerCase());
+                }
+            } else if (args.length == 3) {
+                completions.addAll(Arrays.asList("10", "50", "100", "200", "500", "1000"));
             }
         } else if (args[0].equalsIgnoreCase("score") && sender.hasPermission("fce.admin")) {
             if (args.length == 2) {

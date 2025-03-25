@@ -33,7 +33,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
 
     @Override
     public String getVersion() {
-        return "1.5";
+        return "1.6";
     }
 
     @Override
@@ -51,19 +51,11 @@ public class PlaceholderHook extends PlaceholderExpansion {
     @Override
     public String onPlaceholderRequest(Player player, String identifier) {
         if (identifier.startsWith("top_name_")) {
-            try {
                 int position = Integer.parseInt(identifier.replace("top_name_", ""));
                 return position <= topNames.size() ? topNames.get(position - 1) : "N/A";
-            } catch (NumberFormatException ignored) {
-                return "";
-            }
         } else if (identifier.startsWith("top_score_")) {
-            try {
                 int position = Integer.parseInt(identifier.replace("top_score_", ""));
                 return position <= topScores.size() ? String.valueOf(topScores.get(position - 1)) : "0";
-            } catch (NumberFormatException ignored) {
-                return "";
-            }
         } else if (identifier.equals("time")) {
             long delayTicks = main.getEventManager().getDelayTimeLeft();
             long eventTicks = main.getEventManager().getEventTimeLeft();
@@ -89,6 +81,9 @@ public class PlaceholderHook extends PlaceholderExpansion {
             return "N/A";
         } else if (identifier.equals("event_status")) {
             return main.getEventManager().isEventActive() ? "Активен" : "Неактивен";
+        } else if (identifier.equals("last_winner")) {
+            String lastWinner = main.getEventManager().getLastWinner();
+            return lastWinner != null ? lastWinner : "Никто";
         }
         return null;
     }

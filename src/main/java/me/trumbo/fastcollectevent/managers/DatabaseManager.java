@@ -18,7 +18,7 @@ public class DatabaseManager {
 
     public DatabaseManager(FastCollectEvent main) {
         this.main = main;
-        this.enabled = main.getConfigManager().getFromConfig("config", "database", "enabled", false);
+        this.enabled = main.getConfigManager().getFromConfig("config", "database", "enabled");
 
         if (enabled) {
             setupDatabase();
@@ -30,13 +30,13 @@ public class DatabaseManager {
 
         HikariConfig hikariConfig = new HikariConfig();
         String jdbcUrl = String.format("jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=UTC",
-                main.getConfigManager().getFromConfig("config", "database", "host", "localhost"),
-                main.getConfigManager().getFromConfig("config", "database", "port", 3306),
-                main.getConfigManager().getFromConfig("config", "database", "database", "fce"));
+                main.getConfigManager().getFromConfig("config", "database", "host"),
+                main.getConfigManager().getFromConfig("config", "database", "port"),
+                main.getConfigManager().getFromConfig("config", "database", "database"));
 
         hikariConfig.setJdbcUrl(jdbcUrl);
-        hikariConfig.setUsername(main.getConfigManager().getFromConfig("config", "database", "username", "root"));
-        hikariConfig.setPassword(main.getConfigManager().getFromConfig("config", "database", "password", "pass"));
+        hikariConfig.setUsername(main.getConfigManager().getFromConfig("config", "database", "username"));
+        hikariConfig.setPassword(main.getConfigManager().getFromConfig("config", "database", "password"));
         hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
         hikariConfig.addDataSourceProperty("cachePrepStmts", "true");

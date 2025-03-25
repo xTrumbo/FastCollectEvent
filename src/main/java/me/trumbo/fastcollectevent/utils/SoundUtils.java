@@ -24,9 +24,9 @@ public class SoundUtils {
                 return null;
             }
 
-            String soundName = configManager.getFromConfig("event", "sounds", soundKey + ".name", null);
-            float volume = configManager.getFromConfig("event", "sounds", soundKey + ".volume", 1.0f);
-            float pitch = configManager.getFromConfig("event", "sounds", soundKey + ".pitch", 1.0f);
+            String soundName = configManager.getFromConfig("event", "sounds", soundKey + ".name");
+            float volume = configManager.getFromConfig("event", "sounds", soundKey + ".volume");
+            float pitch = configManager.getFromConfig("event", "sounds", soundKey + ".pitch");
 
             return new SoundConfig(soundName, volume, pitch);
 

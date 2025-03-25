@@ -26,6 +26,7 @@ messages:
   score-invalid-operation: "&6FCE &8■ &cОперация должна быть 'plus' или 'minus'!"
   score-plus: "&6FCE &8■ &aДобавлено &6%amount%&a очков игроку &6%player%&a. Новый счёт: &6%newscore%"
   score-minus: "&6FCE &8■ &cУбрано &6%amount%&c очков у игрока &6%player%&c. Новый счёт: &6%newscore%"
+  invalid-item: "&cНеверный тип предмета!"
 
 database:
   enabled: false #Вкл/выкл подключения бд
