@@ -33,7 +33,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
 
     @Override
     public String getVersion() {
-        return "1.6";
+        return "1.7";
     }
 
     @Override

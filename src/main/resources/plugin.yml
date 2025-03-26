@@ -1,8 +1,11 @@
 name: FastCollectEvent
-version: '1.6'
+version: '1.7'
 main: me.trumbo.fastcollectevent.FastCollectEvent
 api-version: '1.16'
 commands:
   fce:
 softdepend:
   - PlaceholderAPI
+libraries:
+  - net.kyori:adventure-text-minimessage:4.19.0
+  - com.zaxxer:HikariCP:5.0.1

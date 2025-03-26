@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.function.Function;
@@ -44,6 +45,16 @@ public final class MessageUtils {
         Object formatted = format(message);
         for (Player player : Bukkit.getOnlinePlayers()) {
             sendMessageToPlayer(player, formatted);
+        }
+    }
+
+    public static void sendMessage(CommandSender sender, String message) {
+        if (sender == null || message == null) return;
+
+        if (sender instanceof Player) {
+            sendMessageToPlayer((Player) sender, message);
+        } else {
+            sender.sendMessage(formatLegacy(message));
         }
     }
 

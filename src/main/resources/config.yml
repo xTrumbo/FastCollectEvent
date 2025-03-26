@@ -4,7 +4,7 @@
 message-format: "hex"
 
 messages:
-  delay-start: "&6FCE &8■ &aДо начала ивента: &6%hours% ч. %minutes% мин. %seconds% сек. &aПредмет: &6%item%"
+  delay-start: "&6FCE &8■ &aДо начала ивента: &6%hours% ч. %minutes% мин. %seconds% сек."
   delay-end: "&6FCE &8■ &aДо конца ивента: &6%hours% ч. %minutes% мин. %seconds% сек. &aПредмет: &6%item%"
   no-event: "&6FCE &8■ &cСейчас нет активного ивента!"
   no-items: "&6FCE &8■ &cУ вас нет &6%item%!"

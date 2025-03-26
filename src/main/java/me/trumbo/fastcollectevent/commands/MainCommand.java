@@ -13,7 +13,6 @@ import org.bukkit.inventory.ItemStack;
 import java.util.*;
 
 public class MainCommand implements CommandExecutor {
-
     private FastCollectEvent main;
 
     public MainCommand(FastCollectEvent main) {
@@ -22,13 +21,13 @@ public class MainCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        Player player = (Player) sender;
+        Player player = sender instanceof Player ? (Player) sender : null;
 
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
             List<String> helpMessages = main.getConfigManager().getFromConfig("config", "messages", "help");
             if (helpMessages != null) {
                 for (String message : helpMessages) {
-                    MessageUtils.sendMessageToPlayer(player, message.replace("%label%", label));
+                    MessageUtils.sendMessage(sender, message.replace("%label%", label));
                 }
             }
             return true;
@@ -49,7 +48,7 @@ public class MainCommand implements CommandExecutor {
                     String formattedMessage = delayStart.replace("%hours%", String.valueOf(hours))
                             .replace("%minutes%", String.valueOf(minutes))
                             .replace("%seconds%", String.valueOf(seconds));
-                    MessageUtils.sendMessageToPlayer(player, formattedMessage);
+                    MessageUtils.sendMessage(sender, formattedMessage);
                 }
             } else if (eventTicks > 0) {
                 int totalSeconds = (int) (eventTicks / 20);
@@ -66,12 +65,12 @@ public class MainCommand implements CommandExecutor {
                             .replace("%minutes%", String.valueOf(minutes))
                             .replace("%seconds%", String.valueOf(seconds))
                             .replace("%item%", itemTranslation);
-                    MessageUtils.sendMessageToPlayer(player, formattedMessage);
+                    MessageUtils.sendMessage(sender, formattedMessage);
                 }
             } else {
                 String noTimer = main.getConfigManager().getFromConfig("config", "messages", "no-timer");
                 if (noTimer != null) {
-                    MessageUtils.sendMessageToPlayer(player, noTimer);
+                    MessageUtils.sendMessage(sender, noTimer);
                 }
             }
             return true;
@@ -81,7 +80,7 @@ public class MainCommand implements CommandExecutor {
             if (!main.getEventManager().isEventActive()) {
                 String noEvent = main.getConfigManager().getFromConfig("config", "messages", "no-event");
                 if (noEvent != null) {
-                    MessageUtils.sendMessageToPlayer(player, noEvent);
+                    MessageUtils.sendMessage(sender, noEvent);
                 }
                 return true;
             }
@@ -96,7 +95,7 @@ public class MainCommand implements CommandExecutor {
             String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
 
             if (topHeader != null) {
-                MessageUtils.sendMessageToPlayer(player, topHeader);
+                MessageUtils.sendMessage(sender, topHeader);
             }
 
             for (int i = 0; i < topLines; i++) {
@@ -115,16 +114,21 @@ public class MainCommand implements CommandExecutor {
                 } else {
                     message = String.valueOf(i + 1);
                 }
-                MessageUtils.sendMessageToPlayer(player, message);
+                MessageUtils.sendMessage(sender, message);
             }
             return true;
         }
 
         if (args[0].equalsIgnoreCase("collect")) {
+            if (player == null) {
+                MessageUtils.sendMessage(sender, "&cЭта команда доступна только игрокам!");
+                return true;
+            }
+
             if (!main.getEventManager().isEventActive()) {
                 String noEvent = main.getConfigManager().getFromConfig("config", "messages", "no-event");
                 if (noEvent != null) {
-                    MessageUtils.sendMessageToPlayer(player, noEvent);
+                    MessageUtils.sendMessage(sender, noEvent);
                 }
                 return true;
             }
@@ -146,7 +150,7 @@ public class MainCommand implements CommandExecutor {
                 String noItems = main.getConfigManager().getFromConfig("config", "messages", "no-items");
                 if (noItems != null) {
                     String formattedMessage = noItems.replace("%item%", itemTranslation);
-                    MessageUtils.sendMessageToPlayer(player, formattedMessage);
+                    MessageUtils.sendMessage(sender, formattedMessage);
                 }
                 return true;
             }
@@ -178,7 +182,7 @@ public class MainCommand implements CommandExecutor {
                     String formattedMessage = collected.replace("%amount%", String.valueOf(collectedAmount))
                             .replace("%item%", itemTranslation != null ? itemTranslation : targetItem.name())
                             .replace("%remaining%", String.valueOf(remaining));
-                    MessageUtils.sendMessageToPlayer(player, formattedMessage);
+                    MessageUtils.sendMessage(sender, formattedMessage);
                 }
             }
             return true;
@@ -188,7 +192,7 @@ public class MainCommand implements CommandExecutor {
             if (args.length != 4) {
                 String usage = main.getConfigManager().getFromConfig("config", "messages", "score-usage");
                 if (usage != null) {
-                    MessageUtils.sendMessageToPlayer(player, usage.replace("%label%", label));
+                    MessageUtils.sendMessage(sender, usage.replace("%label%", label));
                 }
                 return true;
             }
@@ -196,7 +200,7 @@ public class MainCommand implements CommandExecutor {
             if (!main.getEventManager().isEventActive()) {
                 String noEvent = main.getConfigManager().getFromConfig("config", "messages", "no-event");
                 if (noEvent != null) {
-                    MessageUtils.sendMessageToPlayer(player, noEvent);
+                    MessageUtils.sendMessage(sender, noEvent);
                 }
                 return true;
             }
@@ -211,7 +215,7 @@ public class MainCommand implements CommandExecutor {
             } catch (NumberFormatException e) {
                 String invalidAmount = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-amount");
                 if (invalidAmount != null) {
-                    MessageUtils.sendMessageToPlayer(player, invalidAmount);
+                    MessageUtils.sendMessage(sender, invalidAmount);
                 }
                 return true;
             }
@@ -223,7 +227,7 @@ public class MainCommand implements CommandExecutor {
             if (!operation.equals("plus") && !operation.equals("minus")) {
                 String invalidOp = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-operation");
                 if (invalidOp != null) {
-                    MessageUtils.sendMessageToPlayer(player, invalidOp);
+                    MessageUtils.sendMessage(sender, invalidOp);
                 }
                 return true;
             }
@@ -239,7 +243,7 @@ public class MainCommand implements CommandExecutor {
                     String formattedMessage = scorePlus.replace("%amount%", String.valueOf(amount))
                             .replace("%player%", targetPlayerName)
                             .replace("%newscore%", String.valueOf(newProgress));
-                    MessageUtils.sendMessageToPlayer(player, formattedMessage);
+                    MessageUtils.sendMessage(sender, formattedMessage);
                 }
             } else {
                 newProgress = Math.max(0, currentProgress - amount);
@@ -249,7 +253,7 @@ public class MainCommand implements CommandExecutor {
                     String formattedMessage = scoreMinus.replace("%amount%", String.valueOf(amount))
                             .replace("%player%", targetPlayerName)
                             .replace("%newscore%", String.valueOf(newProgress));
-                    MessageUtils.sendMessageToPlayer(player, formattedMessage);
+                    MessageUtils.sendMessage(sender, formattedMessage);
                 }
             }
 
@@ -263,20 +267,20 @@ public class MainCommand implements CommandExecutor {
             if (main.getEventManager().isEventActive()) {
                 String alreadyActive = main.getConfigManager().getFromConfig("config", "messages", "already-active");
                 if (alreadyActive != null) {
-                    MessageUtils.sendMessageToPlayer(player, alreadyActive);
+                    MessageUtils.sendMessage(sender, alreadyActive);
                 }
                 return true;
             }
 
             main.getEventManager().stopTimers();
 
-            if (args.length >= 3) {
+            if (args.length >= 4) {
                 try {
                     Material targetItem = Material.matchMaterial(args[1].toUpperCase());
                     if (targetItem == null) {
                         String invalidItem = main.getConfigManager().getFromConfig("config", "messages", "invalid-item");
                         if (invalidItem != null) {
-                            MessageUtils.sendMessageToPlayer(player, invalidItem);
+                            MessageUtils.sendMessage(sender, invalidItem);
                         }
                         return true;
                     }
@@ -285,27 +289,37 @@ public class MainCommand implements CommandExecutor {
                     if (targetAmount <= 0) {
                         String invalidAmount = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-amount");
                         if (invalidAmount != null) {
-                            MessageUtils.sendMessageToPlayer(player, invalidAmount);
+                            MessageUtils.sendMessage(sender, invalidAmount);
+                        }
+                        return true;
+                    }
+
+                    int durationMinutes = Integer.parseInt(args[3]);
+                    if (durationMinutes <= 0) {
+                        String invalidDuration = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-amount");
+                        if (invalidDuration != null) {
+                            MessageUtils.sendMessage(sender, invalidDuration);
                         }
                         return true;
                     }
 
                     main.getEventManager().setTargetItem(targetItem);
                     main.getEventManager().setTargetAmount(targetAmount);
+                    main.getEventManager().setCustomEventDuration(durationMinutes * 1200L);
+
                 } catch (NumberFormatException e) {
-                    String invalidAmount = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-amount");
-                    if (invalidAmount != null) {
-                        MessageUtils.sendMessageToPlayer(player, invalidAmount);
+                    String invalidNumber = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-amount");
+                    if (invalidNumber != null) {
+                        MessageUtils.sendMessage(sender, invalidNumber);
                     }
                     return true;
                 }
             }
 
             main.getEventManager().startEventTimer();
-
             String started = main.getConfigManager().getFromConfig("config", "messages", "event-started");
             if (started != null) {
-                MessageUtils.sendMessageToPlayer(player, started);
+                MessageUtils.sendMessage(sender, started);
             }
             return true;
         }
@@ -314,16 +328,15 @@ public class MainCommand implements CommandExecutor {
             if (!main.getEventManager().isEventActive()) {
                 String notActive = main.getConfigManager().getFromConfig("config", "messages", "not-active");
                 if (notActive != null) {
-                    MessageUtils.sendMessageToPlayer(player, notActive);
+                    MessageUtils.sendMessage(sender, notActive);
                 }
                 return true;
             }
 
             main.getEventManager().endEvent(null);
-
             String stopped = main.getConfigManager().getFromConfig("config", "messages", "event-stopped");
             if (stopped != null) {
-                MessageUtils.sendMessageToPlayer(player, stopped);
+                MessageUtils.sendMessage(sender, stopped);
             }
             return true;
         }
@@ -333,13 +346,14 @@ public class MainCommand implements CommandExecutor {
             main.getEventManager().reloadEvent();
             String reloadMessage = main.getConfigManager().getFromConfig("config", "messages", "reload");
             if (reloadMessage != null) {
-                MessageUtils.sendMessageToPlayer(player, reloadMessage);
+                MessageUtils.sendMessage(sender, reloadMessage);
             }
-        } else {
-            String noPerm = main.getConfigManager().getFromConfig("config", "messages", "no-perm");
-            if (noPerm != null) {
-                MessageUtils.sendMessageToPlayer(player, noPerm);
-            }
+            return true;
+        }
+
+        String noPerm = main.getConfigManager().getFromConfig("config", "messages", "no-perm");
+        if (noPerm != null) {
+            MessageUtils.sendMessage(sender, noPerm);
         }
         return true;
     }

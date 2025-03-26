@@ -33,6 +33,8 @@ public class EventManager {
     private long delayDuration;
     private long eventDuration;
 
+    private long customEventDuration;
+
     private Random random;
 
     private String lastWinner;
@@ -44,6 +46,8 @@ public class EventManager {
 
         this.random = new Random();
         this.lastWinner = null;
+
+        this.customEventDuration = -1;
 
         startDelayTimer();
     }
@@ -64,11 +68,13 @@ public class EventManager {
 
     public void startEventTimer() {
         ConfigManager configManager = main.getConfigManager();
-        int eventDurationSeconds = configManager.getFromConfig("event", "event", "duration");
+        int eventDurationSeconds = customEventDuration >= 0
+                ? (int) (customEventDuration / 20)
+                : configManager.getFromConfig("event", "event", "duration");
+
         String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
 
         eventDuration = eventDurationSeconds * 20L;
-
         isEventActive = true;
 
         SoundUtils.playSoundToAll("event-start", main.getConfigManager());
@@ -84,6 +90,8 @@ public class EventManager {
             endEvent(null);
         }, eventDuration);
         eventStartTime = main.getServer().getCurrentTick();
+
+        customEventDuration = -1;
     }
 
     public void endEvent(Player winner) {
@@ -301,6 +309,10 @@ public class EventManager {
 
     public void setTargetAmount(int targetAmount) {
         this.targetAmount = targetAmount;
+    }
+
+    public void setCustomEventDuration(long durationTicks) {
+        this.customEventDuration = durationTicks;
     }
 
 }
