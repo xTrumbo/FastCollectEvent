@@ -2,12 +2,14 @@ package me.trumbo.fastcollectevent.managers;
 
 import me.trumbo.fastcollectevent.FastCollectEvent;
 import me.trumbo.fastcollectevent.utils.MessageUtils;
+import me.trumbo.fastcollectevent.utils.RandomUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class ConfigManager {
@@ -18,11 +20,9 @@ public class ConfigManager {
     private FileConfiguration config;
     private FileConfiguration event;
     private FileConfiguration itemTranslations;
-    private Random random;
 
     public ConfigManager(FastCollectEvent main) {
         this.main = main;
-        this.random = new Random();
         createFiles();
     }
 
@@ -101,47 +101,37 @@ public class ConfigManager {
         }
     }
 
+    public void addEventItem(Material material, String range, String translation) {
+
+        List<String> items = getFromConfig("event", "event", "items");
+        if (items == null) {
+            items = new ArrayList<>();
+        }
+
+        String itemEntry = material.name() + ";" + range;
+        if (!items.contains(itemEntry)) {
+            items.add(itemEntry);
+            event.set("event.items", items);
+        }
+
+        itemTranslations.set("items." + material.name(), translation);
+
+        try {
+            event.save(eventFile);
+            itemTranslations.save(itemTranslationsFile);
+        } catch (IOException e) {
+            main.getLogger().severe(e.getMessage());
+        }
+    }
+
     public Object[] getRandomEventItem() {
         List<String> items = getFromConfig("event", "event", "items");
-        if (items == null || items.isEmpty() || random == null) {
-            return new Object[]{Material.DIAMOND, 64};
-        }
-
-        String selectedItem = items.get(random.nextInt(items.size()));
-        String[] parts = selectedItem.split(";");
-
-        if (parts.length != 2) {
-            return new Object[]{Material.DIAMOND, 64};
-        }
-
-        Material material = Material.matchMaterial(parts[0]);
-        if (material == null) {
-            material = Material.DIAMOND;
-        }
-
-        String[] range = parts[1].split("-");
-        int amount = 64;
-        if (range.length == 2) {
-            int min = Integer.parseInt(range[0]);
-            int max = Integer.parseInt(range[1]);
-            if (min <= max) {
-                amount = min + random.nextInt(max - min + 1);
-            }
-        }
-
-        return new Object[]{material, amount};
+        return RandomUtils.getRandomEventItem(items);
     }
 
     public List<Map.Entry<Integer, List<String>>> getTopRewards() {
         List<Map.Entry<Integer, List<String>>> rewards = new ArrayList<>();
         ConfigurationSection section = event.getConfigurationSection("top-rewards");
-
-        if (section == null) {
-            rewards.add(new AbstractMap.SimpleEntry<>(1, Arrays.asList("give %winner% diamond 64")));
-            rewards.add(new AbstractMap.SimpleEntry<>(2, Arrays.asList("give %winner% emerald 32")));
-            rewards.add(new AbstractMap.SimpleEntry<>(3, Arrays.asList("give %winner% gold_ingot 16")));
-            return rewards;
-        }
 
         for (String key : section.getKeys(false)) {
             int position = Integer.parseInt(key);

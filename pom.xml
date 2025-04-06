@@ -6,7 +6,7 @@
 
   <groupId>me.trumbo</groupId>
   <artifactId>FastCollectEvent</artifactId>
-  <version>1.7</version>
+  <version>1.9</version>
   <packaging>jar</packaging>
 
   <name>FastCollectEvent</name>

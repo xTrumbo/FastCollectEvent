@@ -3,6 +3,7 @@ package me.trumbo.fastcollectevent.commands;
 import me.trumbo.fastcollectevent.FastCollectEvent;
 import me.trumbo.fastcollectevent.utils.MessageUtils;
 import me.trumbo.fastcollectevent.utils.SoundUtils;
+import me.trumbo.fastcollectevent.utils.TimeUtils;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -38,33 +39,19 @@ public class MainCommand implements CommandExecutor {
             long eventTicks = main.getEventManager().getEventTimeLeft();
 
             if (delayTicks > 0) {
-                int totalSeconds = (int) (delayTicks / 20);
-                int hours = totalSeconds / 3600;
-                int minutes = (totalSeconds % 3600) / 60;
-                int seconds = totalSeconds % 60;
-
+                TimeUtils.TimeRemaining time = TimeUtils.ticksToTime(delayTicks);
                 String delayStart = main.getConfigManager().getFromConfig("config", "messages", "delay-start");
                 if (delayStart != null) {
-                    String formattedMessage = delayStart.replace("%hours%", String.valueOf(hours))
-                            .replace("%minutes%", String.valueOf(minutes))
-                            .replace("%seconds%", String.valueOf(seconds));
+                    String formattedMessage = TimeUtils.formatTime(delayStart, time);
                     MessageUtils.sendMessage(sender, formattedMessage);
                 }
             } else if (eventTicks > 0) {
-                int totalSeconds = (int) (eventTicks / 20);
-                int hours = totalSeconds / 3600;
-                int minutes = (totalSeconds % 3600) / 60;
-                int seconds = totalSeconds % 60;
-
+                TimeUtils.TimeRemaining time = TimeUtils.ticksToTime(eventTicks);
                 Material targetItem = main.getEventManager().getTargetItem();
                 String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
-
                 String delayEnd = main.getConfigManager().getFromConfig("config", "messages", "delay-end");
                 if (delayEnd != null) {
-                    String formattedMessage = delayEnd.replace("%hours%", String.valueOf(hours))
-                            .replace("%minutes%", String.valueOf(minutes))
-                            .replace("%seconds%", String.valueOf(seconds))
-                            .replace("%item%", itemTranslation);
+                    String formattedMessage = TimeUtils.formatTime(delayEnd, time, "%item%", itemTranslation);
                     MessageUtils.sendMessage(sender, formattedMessage);
                 }
             } else {
@@ -120,10 +107,6 @@ public class MainCommand implements CommandExecutor {
         }
 
         if (args[0].equalsIgnoreCase("collect")) {
-            if (player == null) {
-                MessageUtils.sendMessage(sender, "&cЭта команда доступна только игрокам!");
-                return true;
-            }
 
             if (!main.getEventManager().isEventActive()) {
                 String noEvent = main.getConfigManager().getFromConfig("config", "messages", "no-event");
@@ -172,6 +155,22 @@ public class MainCommand implements CommandExecutor {
             main.getEventManager().addPlayerProgress(player.getUniqueId(), collectedAmount);
             int totalProgress = main.getEventManager().getPlayerProgress(player.getUniqueId());
             int remaining = targetAmount - totalProgress;
+
+            int halfTarget = targetAmount / 2;
+            if (totalProgress >= halfTarget && (totalProgress - collectedAmount) < halfTarget) {
+                List<String> halfMessages = main.getConfigManager().getFromConfig("event", "event", "half-reached");
+                SoundUtils.playSoundToAll("half-reached", main.getConfigManager());
+                if (halfMessages != null) {
+                    for (String message : halfMessages) {
+                        String formattedMessage = message
+                                .replace("%player%", player.getName())
+                                .replace("%amount%", String.valueOf(totalProgress))
+                                .replace("%item%", itemTranslation != null ? itemTranslation : targetItem.name())
+                                .replace("%target%", String.valueOf(targetAmount));
+                        MessageUtils.sendMessageToAll(formattedMessage);
+                    }
+                }
+            }
 
             if (totalProgress >= targetAmount) {
                 main.getEventManager().endEvent(player);
@@ -337,6 +336,60 @@ public class MainCommand implements CommandExecutor {
             String stopped = main.getConfigManager().getFromConfig("config", "messages", "event-stopped");
             if (stopped != null) {
                 MessageUtils.sendMessage(sender, stopped);
+            }
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("additem") && sender.hasPermission("fce.admin")) {
+
+            if (args.length != 3) {
+                String usage = main.getConfigManager().getFromConfig("config", "messages", "additem-usage");
+                if (usage != null) {
+                    MessageUtils.sendMessage(sender, usage.replace("%label%", label));
+                }
+                return true;
+            }
+
+            ItemStack itemInHand = player.getInventory().getItemInMainHand();
+            if (itemInHand == null || itemInHand.getType() == Material.AIR) {
+                String noItem = main.getConfigManager().getFromConfig("config", "messages", "invalid-item");
+                if (noItem != null) {
+                    MessageUtils.sendMessage(sender, noItem);
+                }
+                return true;
+            }
+            Material itemType = itemInHand.getType();
+
+            String range = args[1];
+            if (!range.matches("\\d+-\\d+")) {
+                String invalidRange = main.getConfigManager().getFromConfig("config", "messages", "additem-invalid-range");
+                if (invalidRange != null) {
+                    MessageUtils.sendMessage(sender, invalidRange);
+                }
+                return true;
+            }
+            String[] rangeParts = range.split("-");
+            int min = Integer.parseInt(rangeParts[0]);
+            int max = Integer.parseInt(rangeParts[1]);
+            if (min <= 0 || max < min) {
+                String invalidRangeValues = main.getConfigManager().getFromConfig("config", "messages", "additem-invalid-range-values");
+                if (invalidRangeValues != null) {
+                    MessageUtils.sendMessage(sender, invalidRangeValues);
+                }
+                return true;
+            }
+
+            String translation = args[2];
+
+            main.getConfigManager().addEventItem(itemType, range, translation);
+
+            String success = main.getConfigManager().getFromConfig("config", "messages", "additem-success");
+            if (success != null) {
+                String formattedMessage = success
+                        .replace("%item%", itemType.name())
+                        .replace("%range%", range)
+                        .replace("%translation%", translation);
+                MessageUtils.sendMessage(sender, formattedMessage);
             }
             return true;
         }

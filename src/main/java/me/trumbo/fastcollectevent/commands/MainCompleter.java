@@ -26,7 +26,7 @@ public class MainCompleter implements TabCompleter {
         if (args.length == 1) {
             completions.addAll(Arrays.asList("delay", "top", "collect", "help"));
             if (sender.hasPermission("fce.admin")) {
-                completions.addAll(Arrays.asList("reload", "score", "start", "stop"));
+                completions.addAll(Arrays.asList("reload", "score", "start", "stop", "additem"));
             }
         } else if (args[0].equalsIgnoreCase("start") && sender.hasPermission("fce.admin")) {
             if (args.length == 2) {
@@ -36,6 +36,8 @@ public class MainCompleter implements TabCompleter {
                 }
             } else if (args.length == 3) {
                 completions.addAll(Arrays.asList("10", "50", "100", "200", "500", "1000"));
+            } else if (args.length == 4) {
+                completions.addAll(Arrays.asList("1", "10", "100"));
             }
         } else if (args[0].equalsIgnoreCase("score") && sender.hasPermission("fce.admin")) {
             if (args.length == 2) {
@@ -44,6 +46,12 @@ public class MainCompleter implements TabCompleter {
                 main.getServer().getOnlinePlayers().forEach(p -> completions.add(p.getName()));
             } else if (args.length == 4) {
                 completions.addAll(Arrays.asList("1", "5", "10", "20", "50"));
+            }
+        } else if (args[0].equalsIgnoreCase("additem") && sender.hasPermission("fce.admin")) {
+            if (args.length == 2) {
+                completions.addAll(Arrays.asList("1-10", "10-20", "32-64", "50-100"));
+            } else if (args.length == 3) {
+                completions.add("перевод");
             }
         }
 

@@ -2,6 +2,7 @@ package me.trumbo.fastcollectevent.managers;
 
 import me.trumbo.fastcollectevent.FastCollectEvent;
 import me.trumbo.fastcollectevent.utils.MessageUtils;
+import me.trumbo.fastcollectevent.utils.RandomUtils;
 import me.trumbo.fastcollectevent.utils.SoundUtils;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -35,8 +36,6 @@ public class EventManager {
 
     private long customEventDuration;
 
-    private Random random;
-
     private String lastWinner;
 
     public EventManager(FastCollectEvent main) {
@@ -44,7 +43,6 @@ public class EventManager {
         this.main = main;
         this.playerProgress = new HashMap<>();
 
-        this.random = new Random();
         this.lastWinner = null;
 
         this.customEventDuration = -1;
@@ -199,21 +197,21 @@ public class EventManager {
         FireworkMeta meta = firework.getFireworkMeta();
 
         FireworkEffect.Type[] types = FireworkEffect.Type.values();
-        FireworkEffect.Type randomType = types[random.nextInt(types.length)];
+        FireworkEffect.Type randomType = RandomUtils.getRandomElement(Arrays.asList(types));
 
-        Color color1 = Color.fromRGB(random.nextInt(256), random.nextInt(256), random.nextInt(256));
-        Color color2 = Color.fromRGB(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+        Color color1 = Color.fromRGB(RandomUtils.getRandomInt(0, 255), RandomUtils.getRandomInt(0, 255), RandomUtils.getRandomInt(0, 255));
+        Color color2 = Color.fromRGB(RandomUtils.getRandomInt(0, 255), RandomUtils.getRandomInt(0, 255), RandomUtils.getRandomInt(0, 255));
 
         FireworkEffect effect = FireworkEffect.builder()
                 .with(randomType)
                 .withColor(color1)
                 .withFade(color2)
-                .flicker(random.nextBoolean())
-                .trail(random.nextBoolean())
+                .flicker(RandomUtils.getRandomInt(0, 1) == 1)
+                .trail(RandomUtils.getRandomInt(0, 1) == 1)
                 .build();
 
         meta.addEffect(effect);
-        meta.setPower(random.nextInt(2) + 1);
+        meta.setPower(RandomUtils.getRandomInt(1, 2));
         firework.setFireworkMeta(meta);
     }
 
@@ -223,36 +221,27 @@ public class EventManager {
         String[] parts = command.split(" ");
         for (int i = 0; i < parts.length; i++) {
             if (parts[i].contains("-")) {
-                String[] range = parts[i].split("-");
-                if (range.length == 2) {
-                    int min = Integer.parseInt(range[0]);
-                    int max = Integer.parseInt(range[1]);
-                    if (min <= max) {
-                        int randomAmount = min + random.nextInt(max - min + 1);
-                        parts[i] = String.valueOf(randomAmount);
-                    }
-                }
+                parts[i] = String.valueOf(RandomUtils.parseRandomRange(parts[i]));
             }
         }
         return String.join(" ", parts);
     }
 
-    public long getDelayTimeLeft() {
-        if (delayTimer != null && !isEventActive && !delayTimer.isCancelled()) {
-            long elapsedTicks = main.getServer().getCurrentTick() - delayStartTime;
-            long remainingTicks = delayDuration - elapsedTicks;
+    private long getRemainingTime(BukkitTask timer, boolean activeCondition, long startTime, long duration) {
+        if (timer != null && activeCondition && !timer.isCancelled()) {
+            long elapsedTicks = main.getServer().getCurrentTick() - startTime;
+            long remainingTicks = duration - elapsedTicks;
             return Math.max(remainingTicks, 0L);
         }
         return 0L;
     }
 
+    public long getDelayTimeLeft() {
+        return getRemainingTime(delayTimer, !isEventActive, delayStartTime, delayDuration);
+    }
+
     public long getEventTimeLeft() {
-        if (eventTimer != null && isEventActive && !eventTimer.isCancelled()) {
-            long elapsedTicks = main.getServer().getCurrentTick() - eventStartTime;
-            long remainingTicks = eventDuration - elapsedTicks;
-            return Math.max(remainingTicks, 0L);
-        }
-        return 0L;
+        return getRemainingTime(eventTimer, isEventActive, eventStartTime, eventDuration);
     }
 
     public List<Map.Entry<UUID, Integer>> getTopPlayers(int limit) {
@@ -277,6 +266,8 @@ public class EventManager {
     public int getPlayerProgress(UUID playerId) {
         return playerProgress.getOrDefault(playerId, 0);
     }
+
+    public HashMap<UUID, Integer> getPlayerProgress() { return playerProgress; }
 
     public void stopTimers() {
         if (delayTimer != null) {

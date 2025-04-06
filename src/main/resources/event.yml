@@ -24,6 +24,13 @@ event:
     - "&cИвент завершён по времени!"
     - "&cНикто не участвовал."
     - ""
+  half-reached:
+    - ""
+    - "&6&LСОБЕРИ БЫСТРЕЕ ВСЕХ!"
+    - ""
+    - "&e%player% собрал &a%amount% &e%item%!"
+    - "&fНужно собрать: &a%target%"
+    - ""
   items: #Рандомный предмет для ивента
     - COBBLESTONE;100-500 #Рандомное кол-во сдачи предмета
     - DIRT;100-500
@@ -52,6 +59,10 @@ sounds:
     volume: 1.0
     pitch: 1.0
   end-yes-winner: #Звук для всех игроков когда в ивенте есть победитель (W)
+    name: "ENTITY_PLAYER_LEVELUP"
+    volume: 1.0
+    pitch: 1.0
+  half-reached: #Звук для всех игроков когда один из игроков достиг половины предмета (W)
     name: "ENTITY_PLAYER_LEVELUP"
     volume: 1.0
     pitch: 1.0

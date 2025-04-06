@@ -27,6 +27,10 @@ messages:
   score-plus: "&6FCE &8■ &aДобавлено &6%amount%&a очков игроку &6%player%&a. Новый счёт: &6%newscore%"
   score-minus: "&6FCE &8■ &cУбрано &6%amount%&c очков у игрока &6%player%&c. Новый счёт: &6%newscore%"
   invalid-item: "&cНеверный тип предмета!"
+  additem-usage: "&6FCE &8■ &cИспользование: /%label% additem <диапазон> <перевод>"
+  additem-invalid-range: "&6FCE &8■ &cФормат должен быть 'число-число' (например, 32-64)!"
+  additem-invalid-range-values: "&6FCE &8■ &cДиапазон должен быть положительным!"
+  additem-success: "&fПредмет &6%item%&f с диапазоном &6%range%&F и переводом &e'%translation%'&f успешно добавлен!"
 
 database:
   enabled: false #Вкл/выкл подключения бд
