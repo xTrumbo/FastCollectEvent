@@ -45,3 +45,9 @@ top-settings:
   top-header: "&aТоп игроков по ивенту:"
   top-line: "&e%position%. &6%player% - &a%amount% %item%"
   top-empty: "&e%position%. &7N/A"
+
+bossbar:
+  enabled: true
+  title: "&6Быстрее сдавай %item%"
+  color: PURPLE
+  style: SOLID

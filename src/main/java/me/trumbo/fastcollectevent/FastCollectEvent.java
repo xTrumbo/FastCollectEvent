@@ -2,6 +2,7 @@ package me.trumbo.fastcollectevent;
 
 import me.trumbo.fastcollectevent.commands.MainCommand;
 import me.trumbo.fastcollectevent.commands.MainCompleter;
+import me.trumbo.fastcollectevent.managers.BossBarManager;
 import me.trumbo.fastcollectevent.managers.ConfigManager;
 import me.trumbo.fastcollectevent.managers.DatabaseManager;
 import me.trumbo.fastcollectevent.managers.EventManager;
@@ -12,6 +13,7 @@ public final class FastCollectEvent extends JavaPlugin {
     private ConfigManager configManager;
     private EventManager eventManager;
     private DatabaseManager databaseManager;
+    private BossBarManager bossBarManager;
 
     @Override
     public void onEnable() {
@@ -19,6 +21,7 @@ public final class FastCollectEvent extends JavaPlugin {
         configManager = new ConfigManager(this);
         eventManager = new EventManager(this);
         databaseManager = new DatabaseManager(this);
+        bossBarManager = new BossBarManager(this);
 
         getCommand("fce").setExecutor(new MainCommand(this));
         getCommand("fce").setTabCompleter(new MainCompleter(this));
@@ -45,6 +48,10 @@ public final class FastCollectEvent extends JavaPlugin {
 
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
+    }
+
+    public BossBarManager getBossBarManager() {
+        return bossBarManager;
     }
 
 }

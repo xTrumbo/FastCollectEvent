@@ -8,6 +8,8 @@ import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
@@ -37,6 +39,8 @@ public class EventManager {
     private long customEventDuration;
 
     private String lastWinner;
+
+    private BukkitTask bossBarUpdateTask;
 
     public EventManager(FastCollectEvent main) {
         this.isEventActive = false;
@@ -90,12 +94,28 @@ public class EventManager {
         eventStartTime = main.getServer().getCurrentTick();
 
         customEventDuration = -1;
+
+        if (main.getBossBarManager().isEnabled()) {
+            String bossBarTitle = main.getBossBarManager().getTitle(itemTranslation);
+            BarColor barColor = main.getBossBarManager().getColor();
+            BarStyle barStyle = main.getBossBarManager().getStyle();
+            
+            main.getBossBarManager().createBossBar(bossBarTitle, barColor, barStyle);
+            main.getBossBarManager().showToAllPlayers();
+
+            bossBarUpdateTask = main.getServer().getScheduler().runTaskTimer(main, () -> {
+                if (isEventActive) {
+                    double progress = (double) getEventTimeLeft() / eventDuration;
+                    main.getBossBarManager().updateProgress(progress);
+                }
+            }, 20L, 20L);
+        }
     }
 
     public void endEvent(Player winner) {
         isEventActive = false;
-        ConfigManager configManager = main.getConfigManager();
-        String itemTranslation = configManager.getItemTranslation(targetItem);
+        String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
+        main.getBossBarManager().removeBossBar();
 
         String winnerName = null;
         int winnerProgress = 0;
@@ -124,13 +144,13 @@ public class EventManager {
         }
 
         if (winnerName != null) {
-            SoundUtils.playSoundToAll("end-yes-winner", configManager);
+            SoundUtils.playSoundToAll("end-yes-winner", main.getConfigManager());
 
             List<String> endMessages;
             if (winner != null) {
-                endMessages = configManager.getFromConfig("event", "event", "event-end");
+                endMessages = main.getConfigManager().getFromConfig("event", "event", "event-end");
             } else {
-                endMessages = configManager.getFromConfig("event", "event", "time-end");
+                endMessages = main.getConfigManager().getFromConfig("event", "event", "time-end");
             }
 
             for (String message : endMessages) {
@@ -141,14 +161,14 @@ public class EventManager {
                 MessageUtils.sendMessageToAll(formattedMessage);
             }
 
-            boolean fireworkEnabled = configManager.getFromConfig("event", "event", "firework-on-winner");
+            boolean fireworkEnabled = main.getConfigManager().getFromConfig("event", "event", "firework-on-winner");
             if (fireworkEnabled && winnerPlayer != null && winnerPlayer.isOnline()) {
                 spawnRandomFirework(winnerPlayer.getLocation());
             }
 
-            int topLines = configManager.getFromConfig("config", "top-settings", "lines");
+            int topLines = main.getConfigManager().getFromConfig("config", "top-settings", "lines");
             List<Map.Entry<UUID, Integer>> topPlayers = getTopPlayers(topLines);
-            List<Map.Entry<Integer, List<String>>> topRewards = configManager.getTopRewards();
+            List<Map.Entry<Integer, List<String>>> topRewards = main.getConfigManager().getTopRewards();
 
             for (int i = 0; i < topLines; i++) {
                 String playerName;
@@ -175,9 +195,9 @@ public class EventManager {
             }
         }
         else {
-            SoundUtils.playSoundToAll("end-no-winner", configManager);
+            SoundUtils.playSoundToAll("end-no-winner", main.getConfigManager());
 
-            List<String> noWinnerMessages = configManager.getFromConfig("event", "event", "event-end-no-winner");
+            List<String> noWinnerMessages = main.getConfigManager().getFromConfig("event", "event", "event-end-no-winner");
 
             for (String message : noWinnerMessages) {
                 MessageUtils.sendMessageToAll(message);
@@ -278,6 +298,10 @@ public class EventManager {
             eventTimer.cancel();
             eventTimer = null;
             isEventActive = false;
+        }
+        if (bossBarUpdateTask != null) {
+            bossBarUpdateTask.cancel();
+            bossBarUpdateTask = null;
         }
     }
 

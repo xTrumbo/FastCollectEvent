@@ -1,5 +1,5 @@
 name: FastCollectEvent
-version: '1.9'
+version: '2.0'
 main: me.trumbo.fastcollectevent.FastCollectEvent
 api-version: '1.16'
 commands:
