@@ -1,5 +1,5 @@
 name: FastCollectEvent
-version: '2.0'
+version: '2.1'
 main: me.trumbo.fastcollectevent.FastCollectEvent
 api-version: '1.16'
 commands:
@@ -9,3 +9,4 @@ softdepend:
 libraries:
   - net.kyori:adventure-text-minimessage:4.19.0
   - com.zaxxer:HikariCP:5.0.1
+  - org.projectlombok:lombok:1.18.34

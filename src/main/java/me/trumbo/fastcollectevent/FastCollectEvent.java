@@ -2,15 +2,16 @@ package me.trumbo.fastcollectevent;
 
 import me.trumbo.fastcollectevent.commands.MainCommand;
 import me.trumbo.fastcollectevent.commands.MainCompleter;
+import me.trumbo.fastcollectevent.config.Config;
+import me.trumbo.fastcollectevent.listeners.BossBarJoin;
 import me.trumbo.fastcollectevent.managers.BossBarManager;
-import me.trumbo.fastcollectevent.managers.ConfigManager;
 import me.trumbo.fastcollectevent.managers.DatabaseManager;
 import me.trumbo.fastcollectevent.managers.EventManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class FastCollectEvent extends JavaPlugin {
 
-    private ConfigManager configManager;
+    private Config config;
     private EventManager eventManager;
     private DatabaseManager databaseManager;
     private BossBarManager bossBarManager;
@@ -18,7 +19,7 @@ public final class FastCollectEvent extends JavaPlugin {
     @Override
     public void onEnable() {
 
-        configManager = new ConfigManager(this);
+        config = new Config(this);
         eventManager = new EventManager(this);
         databaseManager = new DatabaseManager(this);
         bossBarManager = new BossBarManager(this);
@@ -31,6 +32,8 @@ public final class FastCollectEvent extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PlaceholderHook(this).register();
         }
+
+        getServer().getPluginManager().registerEvents(new BossBarJoin(this), this);
     }
 
     @Override
@@ -38,8 +41,8 @@ public final class FastCollectEvent extends JavaPlugin {
         databaseManager.close();
     }
 
-    public ConfigManager getConfigManager() {
-        return configManager;
+    public Config getPluginConfig() {
+        return config;
     }
 
     public EventManager getEventManager() {

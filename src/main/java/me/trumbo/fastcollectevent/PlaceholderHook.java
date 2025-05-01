@@ -13,6 +13,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
     private final FastCollectEvent main;
     private List<String> topNames = new ArrayList<>();
     private List<Integer> topScores = new ArrayList<>();
+    private List<Integer> topWins = new ArrayList<>();
 
     public PlaceholderHook(FastCollectEvent main) {
         this.main = main;
@@ -34,7 +35,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
 
     @Override
     public String getVersion() {
-        return "2.0";
+        return "2.1";
     }
 
     @Override
@@ -46,6 +47,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
         main.getDatabaseManager().getTopPlayers(10).thenAccept(top -> {
             topNames = top[0];
             topScores = top[1];
+            topWins = top[2];
         });
     }
 
@@ -61,6 +63,9 @@ public class PlaceholderHook extends PlaceholderExpansion {
         } else if (identifier.startsWith("top_score_")) {
             int position = Integer.parseInt(identifier.replace("top_score_", ""));
             return position <= topScores.size() ? String.valueOf(topScores.get(position - 1)) : "0";
+        } else if (identifier.startsWith("top_wins_")) {
+            int position = Integer.parseInt(identifier.replace("top_wins_", ""));
+            return position <= topWins.size() ? String.valueOf(topWins.get(position - 1)) : "0";
         } else if (identifier.equals("time")) {
             long delayTicks = main.getEventManager().getDelayTimeLeft();
             long eventTicks = main.getEventManager().getEventTimeLeft();
@@ -79,7 +84,7 @@ public class PlaceholderHook extends PlaceholderExpansion {
         } else if (identifier.equals("item_name")) {
             Material targetItem = main.getEventManager().getTargetItem();
             if (targetItem != null) {
-                String translation = main.getConfigManager().getItemTranslation(targetItem);
+                String translation = main.getPluginConfig().getTranslationData().getTranslation(targetItem);
                 return translation != null ? translation : targetItem.name();
             }
             return "N/A";

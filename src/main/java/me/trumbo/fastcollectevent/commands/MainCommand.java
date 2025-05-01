@@ -2,6 +2,7 @@ package me.trumbo.fastcollectevent.commands;
 
 import me.trumbo.fastcollectevent.FastCollectEvent;
 import me.trumbo.fastcollectevent.utils.MessageUtils;
+import me.trumbo.fastcollectevent.utils.RandomUtils;
 import me.trumbo.fastcollectevent.utils.SoundUtils;
 import me.trumbo.fastcollectevent.utils.TimeUtils;
 import org.bukkit.Material;
@@ -25,14 +26,11 @@ public class MainCommand implements CommandExecutor {
         Player player = sender instanceof Player ? (Player) sender : null;
 
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            List<String> helpMessages = main.getConfigManager().getFromConfig("config", "messages", "help");
-            if (helpMessages != null) {
-                for (String message : helpMessages) {
+                for (String message : main.getPluginConfig().getConfigData().getHelpMessages()) {
                     MessageUtils.sendMessage(sender, message.replace("%label%", label));
                 }
+                return true;
             }
-            return true;
-        }
 
         if (args[0].equalsIgnoreCase("delay")) {
             long delayTicks = main.getEventManager().getDelayTimeLeft();
@@ -40,7 +38,7 @@ public class MainCommand implements CommandExecutor {
 
             if (delayTicks > 0) {
                 TimeUtils.TimeRemaining time = TimeUtils.ticksToTime(delayTicks);
-                String delayStart = main.getConfigManager().getFromConfig("config", "messages", "delay-start");
+                String delayStart = main.getPluginConfig().getConfigData().getDelayStartMessage();
                 if (delayStart != null) {
                     String formattedMessage = TimeUtils.formatTime(delayStart, time);
                     MessageUtils.sendMessage(sender, formattedMessage);
@@ -48,14 +46,14 @@ public class MainCommand implements CommandExecutor {
             } else if (eventTicks > 0) {
                 TimeUtils.TimeRemaining time = TimeUtils.ticksToTime(eventTicks);
                 Material targetItem = main.getEventManager().getTargetItem();
-                String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
-                String delayEnd = main.getConfigManager().getFromConfig("config", "messages", "delay-end");
+                String itemTranslation = main.getPluginConfig().getTranslationData().getTranslation(targetItem);
+                String delayEnd = main.getPluginConfig().getConfigData().getDelayEndMessage();
                 if (delayEnd != null) {
                     String formattedMessage = TimeUtils.formatTime(delayEnd, time, "%item%", itemTranslation);
                     MessageUtils.sendMessage(sender, formattedMessage);
                 }
             } else {
-                String noTimer = main.getConfigManager().getFromConfig("config", "messages", "no-timer");
+                String noTimer = main.getPluginConfig().getConfigData().getNoEventMessage();
                 if (noTimer != null) {
                     MessageUtils.sendMessage(sender, noTimer);
                 }
@@ -65,21 +63,21 @@ public class MainCommand implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase("top")) {
             if (!main.getEventManager().isEventActive()) {
-                String noEvent = main.getConfigManager().getFromConfig("config", "messages", "no-event");
+                String noEvent = main.getPluginConfig().getConfigData().getNoEventMessage();
                 if (noEvent != null) {
                     MessageUtils.sendMessage(sender, noEvent);
                 }
                 return true;
             }
 
-            Integer topLines = main.getConfigManager().getFromConfig("config", "top-settings", "lines");
-            String topHeader = main.getConfigManager().getFromConfig("config", "top-settings", "top-header");
-            String topLineFormat = main.getConfigManager().getFromConfig("config", "top-settings", "top-line");
-            String topEmptyFormat = main.getConfigManager().getFromConfig("config", "top-settings", "top-empty");
+            Integer topLines = main.getPluginConfig().getConfigData().getTopLines();
+            String topHeader = main.getPluginConfig().getConfigData().getTopHeader();
+            String topLineFormat = main.getPluginConfig().getConfigData().getTopLine();
+            String topEmptyFormat = main.getPluginConfig().getConfigData().getTopEmpty();
 
             List<Map.Entry<UUID, Integer>> topPlayers = main.getEventManager().getTopPlayers(topLines);
             Material targetItem = main.getEventManager().getTargetItem();
-            String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
+            String itemTranslation = main.getPluginConfig().getTranslationData().getTranslation(targetItem);
 
             if (topHeader != null) {
                 MessageUtils.sendMessage(sender, topHeader);
@@ -109,7 +107,7 @@ public class MainCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("collect")) {
 
             if (!main.getEventManager().isEventActive()) {
-                String noEvent = main.getConfigManager().getFromConfig("config", "messages", "no-event");
+                String noEvent = main.getPluginConfig().getConfigData().getNoEventMessage();
                 if (noEvent != null) {
                     MessageUtils.sendMessage(sender, noEvent);
                 }
@@ -117,7 +115,7 @@ public class MainCommand implements CommandExecutor {
             }
 
             Material targetItem = main.getEventManager().getTargetItem();
-            String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
+            String itemTranslation = main.getPluginConfig().getTranslationData().getTranslation(targetItem);
             int targetAmount = main.getEventManager().getTargetAmount();
             int playerAmount = player.getInventory().all(targetItem).values().stream()
                     .mapToInt(ItemStack::getAmount)
@@ -129,8 +127,8 @@ public class MainCommand implements CommandExecutor {
             }
 
             if (playerAmount == 0) {
-                SoundUtils.playSound(player, "no-items", main.getConfigManager());
-                String noItems = main.getConfigManager().getFromConfig("config", "messages", "no-items");
+                SoundUtils.playSound(main, player, "no-items");
+                String noItems = main.getPluginConfig().getConfigData().getNoItemsMessage();
                 if (noItems != null) {
                     String formattedMessage = noItems.replace("%item%", itemTranslation);
                     MessageUtils.sendMessage(sender, formattedMessage);
@@ -158,8 +156,8 @@ public class MainCommand implements CommandExecutor {
 
             int halfTarget = targetAmount / 2;
             if (totalProgress >= halfTarget && (totalProgress - collectedAmount) < halfTarget) {
-                List<String> halfMessages = main.getConfigManager().getFromConfig("event", "event", "half-reached");
-                SoundUtils.playSoundToAll("half-reached", main.getConfigManager());
+                List<String> halfMessages = main.getPluginConfig().getEventData().getHalfReached();
+                SoundUtils.playSoundToAll(main, "half-reached");
                 if (halfMessages != null) {
                     for (String message : halfMessages) {
                         String formattedMessage = message
@@ -175,8 +173,8 @@ public class MainCommand implements CommandExecutor {
             if (totalProgress >= targetAmount) {
                 main.getEventManager().endEvent(player);
             } else {
-                SoundUtils.playSound(player, "collect", main.getConfigManager());
-                String collected = main.getConfigManager().getFromConfig("config", "messages", "collected");
+                SoundUtils.playSound(main, player, "collect");
+                String collected = main.getPluginConfig().getConfigData().getCollectedMessage();
                 if (collected != null) {
                     String formattedMessage = collected.replace("%amount%", String.valueOf(collectedAmount))
                             .replace("%item%", itemTranslation != null ? itemTranslation : targetItem.name())
@@ -189,7 +187,7 @@ public class MainCommand implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase("score") && sender.hasPermission("fce.admin")) {
             if (args.length != 4) {
-                String usage = main.getConfigManager().getFromConfig("config", "messages", "score-usage");
+                String usage = main.getPluginConfig().getConfigData().getScoreUsageMessage();
                 if (usage != null) {
                     MessageUtils.sendMessage(sender, usage.replace("%label%", label));
                 }
@@ -197,7 +195,7 @@ public class MainCommand implements CommandExecutor {
             }
 
             if (!main.getEventManager().isEventActive()) {
-                String noEvent = main.getConfigManager().getFromConfig("config", "messages", "no-event");
+                String noEvent = main.getPluginConfig().getConfigData().getNoEventMessage();
                 if (noEvent != null) {
                     MessageUtils.sendMessage(sender, noEvent);
                 }
@@ -212,7 +210,7 @@ public class MainCommand implements CommandExecutor {
                 amount = Integer.parseInt(args[3]);
                 if (amount < 0) throw new NumberFormatException();
             } catch (NumberFormatException e) {
-                String invalidAmount = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-amount");
+                String invalidAmount = main.getPluginConfig().getConfigData().getScoreInvalidAmountMessage();
                 if (invalidAmount != null) {
                     MessageUtils.sendMessage(sender, invalidAmount);
                 }
@@ -224,7 +222,7 @@ public class MainCommand implements CommandExecutor {
                     main.getServer().getOfflinePlayer(targetPlayerName).getUniqueId();
 
             if (!operation.equals("plus") && !operation.equals("minus")) {
-                String invalidOp = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-operation");
+                String invalidOp = main.getPluginConfig().getConfigData().getScoreInvalidOperationMessage();
                 if (invalidOp != null) {
                     MessageUtils.sendMessage(sender, invalidOp);
                 }
@@ -237,7 +235,7 @@ public class MainCommand implements CommandExecutor {
             if (operation.equals("plus")) {
                 main.getEventManager().addPlayerProgress(targetUUID, amount);
                 newProgress = currentProgress + amount;
-                String scorePlus = main.getConfigManager().getFromConfig("config", "messages", "score-plus");
+                String scorePlus = main.getPluginConfig().getConfigData().getScorePlusMessage();
                 if (scorePlus != null) {
                     String formattedMessage = scorePlus.replace("%amount%", String.valueOf(amount))
                             .replace("%player%", targetPlayerName)
@@ -247,7 +245,7 @@ public class MainCommand implements CommandExecutor {
             } else {
                 newProgress = Math.max(0, currentProgress - amount);
                 main.getEventManager().addPlayerProgress(targetUUID, newProgress - currentProgress);
-                String scoreMinus = main.getConfigManager().getFromConfig("config", "messages", "score-minus");
+                String scoreMinus = main.getPluginConfig().getConfigData().getScoreMinusMessage();
                 if (scoreMinus != null) {
                     String formattedMessage = scoreMinus.replace("%amount%", String.valueOf(amount))
                             .replace("%player%", targetPlayerName)
@@ -264,7 +262,7 @@ public class MainCommand implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase("start") && sender.hasPermission("fce.admin")) {
             if (main.getEventManager().isEventActive()) {
-                String alreadyActive = main.getConfigManager().getFromConfig("config", "messages", "already-active");
+                String alreadyActive = main.getPluginConfig().getConfigData().getAlreadyActiveMessage();
                 if (alreadyActive != null) {
                     MessageUtils.sendMessage(sender, alreadyActive);
                 }
@@ -277,29 +275,39 @@ public class MainCommand implements CommandExecutor {
                 try {
                     Material targetItem = Material.matchMaterial(args[1].toUpperCase());
                     if (targetItem == null) {
-                        String invalidItem = main.getConfigManager().getFromConfig("config", "messages", "invalid-item");
+                        String invalidItem = main.getPluginConfig().getConfigData().getInvalidItemMessage();
                         if (invalidItem != null) {
                             MessageUtils.sendMessage(sender, invalidItem);
                         }
                         return true;
                     }
 
-                    int targetAmount = Integer.parseInt(args[2]);
-                    if (targetAmount <= 0) {
-                        String invalidAmount = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-amount");
-                        if (invalidAmount != null) {
-                            MessageUtils.sendMessage(sender, invalidAmount);
+                    int targetAmount;
+                    if (args[2].contains("-")) {
+                        targetAmount = RandomUtils.parseRandomRange(args[2]);
+                    } else {
+                        targetAmount = Integer.parseInt(args[2]);
+                        if (targetAmount <= 0) {
+                            String invalidAmount = main.getPluginConfig().getConfigData().getScoreInvalidAmountMessage();
+                            if (invalidAmount != null) {
+                                MessageUtils.sendMessage(sender, invalidAmount);
+                            }
+                            return true;
                         }
-                        return true;
                     }
 
-                    int durationMinutes = Integer.parseInt(args[3]);
-                    if (durationMinutes <= 0) {
-                        String invalidDuration = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-amount");
-                        if (invalidDuration != null) {
-                            MessageUtils.sendMessage(sender, invalidDuration);
+                    int durationMinutes;
+                    if (args[3].contains("-")) {
+                        durationMinutes = RandomUtils.parseRandomRange(args[3]);
+                    } else {
+                        durationMinutes = Integer.parseInt(args[3]);
+                        if (durationMinutes <= 0) {
+                            String invalidDuration = main.getPluginConfig().getConfigData().getScoreInvalidAmountMessage();
+                            if (invalidDuration != null) {
+                                MessageUtils.sendMessage(sender, invalidDuration);
+                            }
+                            return true;
                         }
-                        return true;
                     }
 
                     main.getEventManager().setTargetItem(targetItem);
@@ -307,7 +315,7 @@ public class MainCommand implements CommandExecutor {
                     main.getEventManager().setCustomEventDuration(durationMinutes * 1200L);
 
                 } catch (NumberFormatException e) {
-                    String invalidNumber = main.getConfigManager().getFromConfig("config", "messages", "score-invalid-amount");
+                    String invalidNumber = main.getPluginConfig().getConfigData().getScoreInvalidAmountMessage();
                     if (invalidNumber != null) {
                         MessageUtils.sendMessage(sender, invalidNumber);
                     }
@@ -316,7 +324,7 @@ public class MainCommand implements CommandExecutor {
             }
 
             main.getEventManager().startEventTimer();
-            String started = main.getConfigManager().getFromConfig("config", "messages", "event-started");
+            String started = main.getPluginConfig().getConfigData().getEventStartedMessage();
             if (started != null) {
                 MessageUtils.sendMessage(sender, started);
             }
@@ -325,15 +333,15 @@ public class MainCommand implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase("stop") && sender.hasPermission("fce.admin")) {
             if (!main.getEventManager().isEventActive()) {
-                String notActive = main.getConfigManager().getFromConfig("config", "messages", "not-active");
-                if (notActive != null) {
-                    MessageUtils.sendMessage(sender, notActive);
+                String noEvent = main.getPluginConfig().getConfigData().getNoEventMessage();
+                if (noEvent != null) {
+                    MessageUtils.sendMessage(sender, noEvent);
                 }
                 return true;
             }
 
             main.getEventManager().endEvent(null);
-            String stopped = main.getConfigManager().getFromConfig("config", "messages", "event-stopped");
+            String stopped = main.getPluginConfig().getConfigData().getEventStoppedMessage();
             if (stopped != null) {
                 MessageUtils.sendMessage(sender, stopped);
             }
@@ -343,7 +351,7 @@ public class MainCommand implements CommandExecutor {
         if (args[0].equalsIgnoreCase("additem") && sender.hasPermission("fce.admin")) {
 
             if (args.length != 3) {
-                String usage = main.getConfigManager().getFromConfig("config", "messages", "additem-usage");
+                String usage = main.getPluginConfig().getConfigData().getAddItemUsageMessage();
                 if (usage != null) {
                     MessageUtils.sendMessage(sender, usage.replace("%label%", label));
                 }
@@ -352,7 +360,7 @@ public class MainCommand implements CommandExecutor {
 
             ItemStack itemInHand = player.getInventory().getItemInMainHand();
             if (itemInHand == null || itemInHand.getType() == Material.AIR) {
-                String noItem = main.getConfigManager().getFromConfig("config", "messages", "invalid-item");
+                String noItem = main.getPluginConfig().getConfigData().getInvalidItemMessage();
                 if (noItem != null) {
                     MessageUtils.sendMessage(sender, noItem);
                 }
@@ -362,7 +370,7 @@ public class MainCommand implements CommandExecutor {
 
             String range = args[1];
             if (!range.matches("\\d+-\\d+")) {
-                String invalidRange = main.getConfigManager().getFromConfig("config", "messages", "additem-invalid-range");
+                String invalidRange = main.getPluginConfig().getConfigData().getAddItemInvalidRangeMessage();
                 if (invalidRange != null) {
                     MessageUtils.sendMessage(sender, invalidRange);
                 }
@@ -372,7 +380,7 @@ public class MainCommand implements CommandExecutor {
             int min = Integer.parseInt(rangeParts[0]);
             int max = Integer.parseInt(rangeParts[1]);
             if (min <= 0 || max < min) {
-                String invalidRangeValues = main.getConfigManager().getFromConfig("config", "messages", "additem-invalid-range-values");
+                String invalidRangeValues = main.getPluginConfig().getConfigData().getAddItemInvalidRangeValuesMessage();
                 if (invalidRangeValues != null) {
                     MessageUtils.sendMessage(sender, invalidRangeValues);
                 }
@@ -381,9 +389,9 @@ public class MainCommand implements CommandExecutor {
 
             String translation = args[2];
 
-            main.getConfigManager().addEventItem(itemType, range, translation);
+            main.getPluginConfig().addEventItem(itemType, range, translation);
 
-            String success = main.getConfigManager().getFromConfig("config", "messages", "additem-success");
+            String success = main.getPluginConfig().getConfigData().getAddItemSuccessMessage();
             if (success != null) {
                 String formattedMessage = success
                         .replace("%item%", itemType.name())
@@ -395,16 +403,16 @@ public class MainCommand implements CommandExecutor {
         }
 
         if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("fce.admin")) {
-            main.getConfigManager().createFiles();
+            main.getPluginConfig().createFiles();
             main.getEventManager().reloadEvent();
-            String reloadMessage = main.getConfigManager().getFromConfig("config", "messages", "reload");
+            String reloadMessage = main.getPluginConfig().getConfigData().getReloadMessage();
             if (reloadMessage != null) {
                 MessageUtils.sendMessage(sender, reloadMessage);
             }
             return true;
         }
 
-        String noPerm = main.getConfigManager().getFromConfig("config", "messages", "no-perm");
+        String noPerm = main.getPluginConfig().getConfigData().getNoPermissionMessage();
         if (noPerm != null) {
             MessageUtils.sendMessage(sender, noPerm);
         }

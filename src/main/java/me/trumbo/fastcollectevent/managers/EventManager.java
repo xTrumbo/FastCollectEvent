@@ -55,11 +55,11 @@ public class EventManager {
     }
 
     private void startDelayTimer() {
-        Object[] itemData = main.getConfigManager().getRandomEventItem();
+        Object[] itemData = main.getPluginConfig().getRandomEventItem();
         this.targetItem = (Material) itemData[0];
         this.targetAmount = (int) itemData[1];
 
-        int delaySeconds = main.getConfigManager().getFromConfig("event", "event", "start-delay");
+        int delaySeconds = main.getPluginConfig().getEventData().getStartDelay();
         delayDuration = delaySeconds * 20L;
 
         delayTimer = main.getServer().getScheduler().runTaskLater(main, () -> {
@@ -69,19 +69,18 @@ public class EventManager {
     }
 
     public void startEventTimer() {
-        ConfigManager configManager = main.getConfigManager();
         int eventDurationSeconds = customEventDuration >= 0
                 ? (int) (customEventDuration / 20)
-                : configManager.getFromConfig("event", "event", "duration");
+                : main.getPluginConfig().getEventData().getDuration();
 
-        String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
+        String itemTranslation = main.getPluginConfig().getTranslationData().getTranslation(targetItem);
 
         eventDuration = eventDurationSeconds * 20L;
         isEventActive = true;
 
-        SoundUtils.playSoundToAll("event-start", main.getConfigManager());
+        SoundUtils.playSoundToAll(main, "event-start");
 
-        List<String> startMessages = configManager.getFromConfig("event", "event", "start-message");
+        List<String> startMessages = main.getPluginConfig().getEventData().getStartMessage();
         for (String message : startMessages) {
             String formattedMessage = message.replace("%item%", itemTranslation)
                     .replace("%int%", String.valueOf(targetAmount));
@@ -114,7 +113,7 @@ public class EventManager {
 
     public void endEvent(Player winner) {
         isEventActive = false;
-        String itemTranslation = main.getConfigManager().getItemTranslation(targetItem);
+        String itemTranslation = main.getPluginConfig().getTranslationData().getTranslation(targetItem);
         main.getBossBarManager().removeBossBar();
 
         String winnerName = null;
@@ -144,13 +143,13 @@ public class EventManager {
         }
 
         if (winnerName != null) {
-            SoundUtils.playSoundToAll("end-yes-winner", main.getConfigManager());
+            SoundUtils.playSoundToAll(main, "end-yes-winner");
 
             List<String> endMessages;
             if (winner != null) {
-                endMessages = main.getConfigManager().getFromConfig("event", "event", "event-end");
+                endMessages = main.getPluginConfig().getEventData().getEventEnd();
             } else {
-                endMessages = main.getConfigManager().getFromConfig("event", "event", "time-end");
+                endMessages = main.getPluginConfig().getEventData().getTimeEnd();
             }
 
             for (String message : endMessages) {
@@ -161,14 +160,14 @@ public class EventManager {
                 MessageUtils.sendMessageToAll(formattedMessage);
             }
 
-            boolean fireworkEnabled = main.getConfigManager().getFromConfig("event", "event", "firework-on-winner");
+            boolean fireworkEnabled = main.getPluginConfig().getEventData().isFireworkOnWinner();
             if (fireworkEnabled && winnerPlayer != null && winnerPlayer.isOnline()) {
                 spawnRandomFirework(winnerPlayer.getLocation());
             }
 
-            int topLines = main.getConfigManager().getFromConfig("config", "top-settings", "lines");
+            int topLines = main.getPluginConfig().getConfigData().getTopLines();
             List<Map.Entry<UUID, Integer>> topPlayers = getTopPlayers(topLines);
-            List<Map.Entry<Integer, List<String>>> topRewards = main.getConfigManager().getTopRewards();
+            List<Map.Entry<Integer, List<String>>> topRewards = main.getPluginConfig().getTopRewards().entrySet().stream().collect(Collectors.toList());
 
             for (int i = 0; i < topLines; i++) {
                 String playerName;
@@ -178,6 +177,10 @@ public class EventManager {
                     Map.Entry<UUID, Integer> entry = topPlayers.get(i);
                     playerName = main.getServer().getOfflinePlayer(entry.getKey()).getName();
                     amount = entry.getValue();
+                    
+                    if (i == 0) {
+                        main.getDatabaseManager().addWin(playerName);
+                    }
                 } else {
                     break;
                 }
@@ -195,9 +198,9 @@ public class EventManager {
             }
         }
         else {
-            SoundUtils.playSoundToAll("end-no-winner", main.getConfigManager());
+            SoundUtils.playSoundToAll(main,"end-no-winner");
 
-            List<String> noWinnerMessages = main.getConfigManager().getFromConfig("event", "event", "event-end-no-winner");
+            List<String> noWinnerMessages = main.getPluginConfig().getEventData().getEventEndNoWinner();
 
             for (String message : noWinnerMessages) {
                 MessageUtils.sendMessageToAll(message);

@@ -21,14 +21,12 @@ public final class RandomUtils {
         return list.get(RANDOM.nextInt(list.size()));
     }
 
-    public static Object[] getRandomEventItem(List<String> items) {
-        if (items == null || items.isEmpty()) {
+    public static Object[] getRandomEventItem(String item) {
+        if (item == null) {
             return new Object[]{Material.DIAMOND, 64};
         }
 
-        String selectedItem = getRandomElement(items);
-        String[] parts = selectedItem.split(";");
-
+        String[] parts = item.split(";");
         if (parts.length != 2) {
             return new Object[]{Material.DIAMOND, 64};
         }
@@ -45,25 +43,23 @@ public final class RandomUtils {
                 int min = Integer.parseInt(range[0]);
                 int max = Integer.parseInt(range[1]);
                 amount = getRandomInt(min, max);
-            } catch (NumberFormatException e) {
-                amount = 64;
-            }
+            } catch (NumberFormatException ignored) {}
         }
 
         return new Object[]{material, amount};
     }
 
+
     public static int parseRandomRange(String rangeStr) {
-        String[] range = rangeStr.split("-");
-        if (range.length == 2) {
-            try {
+
+            String[] range = rangeStr.split("-");
+            if (range.length == 2) {
                 int min = Integer.parseInt(range[0]);
                 int max = Integer.parseInt(range[1]);
                 return getRandomInt(min, max);
-            } catch (NumberFormatException e) {
-                return Integer.parseInt(range[0]);
             }
-        }
-        return Integer.parseInt(rangeStr);
+
+            return Integer.parseInt(rangeStr);
+
     }
 }

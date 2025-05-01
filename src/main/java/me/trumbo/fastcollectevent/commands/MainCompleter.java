@@ -30,7 +30,7 @@ public class MainCompleter implements TabCompleter {
             }
         } else if (args[0].equalsIgnoreCase("start") && sender.hasPermission("fce.admin")) {
             if (args.length == 2) {
-                List<Material> eventItems = main.getConfigManager().getEventItems();
+                List<Material> eventItems = main.getPluginConfig().getEventItems();
                 for (Material material : eventItems) {
                     completions.add(material.name().toLowerCase());
                 }

@@ -1,60 +1,28 @@
 package me.trumbo.fastcollectevent.utils;
 
-import me.trumbo.fastcollectevent.managers.ConfigManager;
-import org.bukkit.Bukkit;
+import me.trumbo.fastcollectevent.FastCollectEvent;
+import me.trumbo.fastcollectevent.config.data.SoundData;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
-public class SoundUtils {
+public final class SoundUtils {
 
-    private static class SoundConfig {
-        final String soundName;
-        final float volume;
-        final float pitch;
+    public static void playSound(FastCollectEvent main, Player player, String soundKey) {
+        SoundData.SoundConfig config = main.getPluginConfig().getSoundData().getSound(soundKey);
+        if (config == null) return;
 
-        SoundConfig(String soundName, float volume, float pitch) {
-            this.soundName = soundName;
-            this.volume = volume;
-            this.pitch = pitch;
-        }
-
-        static SoundConfig loadFromConfig(String soundKey, ConfigManager configManager) {
-
-            if (soundKey == null || configManager == null) {
-                return null;
-            }
-
-            String soundName = configManager.getFromConfig("event", "sounds", soundKey + ".name");
-            float volume = configManager.getFromConfig("event", "sounds", soundKey + ".volume");
-            float pitch = configManager.getFromConfig("event", "sounds", soundKey + ".pitch");
-
-            return new SoundConfig(soundName, volume, pitch);
-
-        }
+        Sound sound = Sound.valueOf(config.getSoundName().toUpperCase());
+        player.playSound(player.getLocation(), sound, config.getVolume(), config.getPitch());
     }
 
-    public static void playSound(Player player, String soundKey, ConfigManager configManager) {
+    public static void playSoundToAll(FastCollectEvent main, String soundKey) {
+        SoundData.SoundConfig config = main.getPluginConfig().getSoundData().getSound(soundKey);
+        if (config == null) return;
 
-        if (player == null) return;
-
-        SoundConfig config = SoundConfig.loadFromConfig(soundKey, configManager);
-
-        Sound sound = Sound.valueOf(config.soundName.toUpperCase());
-        player.playSound(player.getLocation(), sound, config.volume, config.pitch);
-
-    }
-
-
-    public static void playSoundToAll(String soundKey, ConfigManager configManager) {
-
-        SoundConfig config = SoundConfig.loadFromConfig(soundKey, configManager);
-
-            Sound sound = Sound.valueOf(config.soundName.toUpperCase());
-
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                player.playSound(player.getLocation(), sound, config.volume, config.pitch);
-            }
-
+        Sound sound = Sound.valueOf(config.getSoundName().toUpperCase());
+        for (Player player : main.getServer().getOnlinePlayers()) {
+            player.playSound(player.getLocation(), sound, config.getVolume(), config.getPitch());
+        }
     }
 }
 
